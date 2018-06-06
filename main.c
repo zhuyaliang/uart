@@ -16,6 +16,7 @@ typedef struct
 	GtkWidget *SelectComPort;
 	GtkWidget *LableBaud;
 	GtkWidget *SelectBaud;
+	GtkWidget *Entry;
 	
 }UartSetFace;
 
@@ -173,6 +174,12 @@ GtkWidget *SetData(void)
 
     return SetComboBox(Store);
 }
+static void OpenSerial(GtkWidget *togglebutton,gpointer user_data)
+{
+      printf("aaaaaaaaaaaaaa\r\n");
+//    gtk_toggle_button_set_active(togglebutton,TRUE);
+
+}        
 void SerialPortSetup(GtkWidget *Hbox)
 {
 	GtkWidget *Vpaned;
@@ -190,8 +197,8 @@ void SerialPortSetup(GtkWidget *Hbox)
 	GtkWidget *SelectData;
 	GtkWidget *Hseparator;
 	GtkWidget *Button;
-	GtkWidget *LabelSpace;
-	
+
+
 	Vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
 	gtk_container_add (GTK_CONTAINER (Hbox), Vpaned);
 	Frame = gtk_frame_new ("Serial Setting");
@@ -201,17 +208,16 @@ void SerialPortSetup(GtkWidget *Hbox)
 	
     Table = gtk_grid_new();
     gtk_container_add (GTK_CONTAINER (Frame), Table);
-    gtk_box_pack_start (GTK_BOX (Hbox), Table, FALSE, FALSE, 0);
 	gtk_grid_set_column_homogeneous(GTK_GRID(Table),TRUE);
 
     LableComPort = gtk_label_new(NULL);
     SetLableFontType(LableComPort,"black",10,("Serial Number"));
     gtk_grid_attach(GTK_GRID(Table) , LableComPort , 0 , 0 , 1 , 1);
-	
-   	SelectComPort = SetComPort();
+   	
+    SelectComPort = SetComPort();
     gtk_combo_box_set_active(GTK_COMBO_BOX(SelectComPort),1);
     gtk_grid_attach(GTK_GRID(Table) ,SelectComPort , 1 , 0 , 1 , 1);
-	
+
 	LableBaud = gtk_label_new(NULL);
     SetLableFontType(LableBaud,"black",10,("Baud Rate"));
     gtk_grid_attach(GTK_GRID(Table) , LableBaud , 0 , 1 , 1 , 1);
@@ -246,10 +252,10 @@ void SerialPortSetup(GtkWidget *Hbox)
    
     Button = gtk_toggle_button_new_with_label("open");
     gtk_grid_attach(GTK_GRID(Table) , Button , 0 , 5 , 2 , 1);
-    
-    LabelSpace = gtk_label_new(" ");
-    gtk_grid_attach(GTK_GRID(Table) , LabelSpace , 0 , 6 , 2 , 1);
-    
+    g_signal_connect_swapped(G_OBJECT(Button), "toggled", G_CALLBACK(OpenSerial), NULL);  
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Button),TRUE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Button),FALSE);
+     
 	Hseparator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_grid_attach(GTK_GRID(Table) , Hseparator , 0 , 7 , 2 , 1);
     
@@ -266,6 +272,8 @@ void ReceiveSet(GtkWidget *Hbox)
 	GtkWidget *Hseparator;
 	GtkWidget *Vpaned;
 	GtkWidget *rcv_frame;
+    GtkWidget *LabelSave;
+    GtkWidget *LabelClear;
 	GtkWidget *LabelSpace;
 	GtkWidget *Table;
 	
@@ -278,40 +286,35 @@ void ReceiveSet(GtkWidget *Hbox)
 	
 	Table = gtk_grid_new();
 	gtk_container_add (GTK_CONTAINER (rcv_frame), Table);
-    gtk_box_pack_start (GTK_BOX (Hbox), Table, FALSE, FALSE, 0);
 	gtk_grid_set_column_homogeneous(GTK_GRID(Table),TRUE);
 
 	LabelSpace = gtk_label_new(" ");
-	gtk_grid_attach(GTK_GRID(Table) ,LabelSpace , 0 , 0 , 1 , 1);
+	gtk_grid_attach(GTK_GRID(Table) ,LabelSpace , 0 , 0 , 2 , 1);
 	
 	CheckReWriteFile = gtk_check_button_new_with_label("Receive Write File");
-	gtk_grid_attach(GTK_GRID(Table) , CheckReWriteFile , 0 , 1 , 1 , 1);
+	gtk_grid_attach(GTK_GRID(Table) , CheckReWriteFile , 0 , 1 , 2 , 1);
 	CheckReTime      = gtk_check_button_new_with_label("Display Receive time");
-	gtk_grid_attach(GTK_GRID(Table) , CheckReTime , 0 , 2 , 1 , 1);
+	gtk_grid_attach(GTK_GRID(Table) , CheckReTime , 0 , 2 , 2 , 1);
 	CheckHex         = gtk_check_button_new_with_label("Display Hex");
-	gtk_grid_attach(GTK_GRID(Table) , CheckHex , 0 , 3 , 1 , 1);
+	gtk_grid_attach(GTK_GRID(Table) , CheckHex , 0 , 3 , 2 , 1);
 	CheckStop        = gtk_check_button_new_with_label("DisPlay stop");
-    gtk_grid_attach(GTK_GRID(Table) , CheckStop , 0 , 4, 1 , 1);
+    gtk_grid_attach(GTK_GRID(Table) , CheckStop , 0 , 4, 2 , 1);
     
-    LabelSpace = gtk_label_new(" ");
-    gtk_grid_attach(GTK_GRID(Table) , LabelSpace , 0 , 5 , 1 , 1);
-    
+    LabelSave = gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Save</span>""</a>");
+    gtk_label_set_use_markup (GTK_LABEL (LabelSave), TRUE); 
+    gtk_grid_attach(GTK_GRID(Table) , LabelSave , 0 , 5, 1 , 1);
+
+    LabelClear = gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Clear</span>""</a>");
+    gtk_label_set_use_markup (GTK_LABEL (LabelClear), TRUE); 
+    gtk_grid_attach(GTK_GRID(Table) , LabelClear , 1 , 5, 1 , 1); 
+
    	Hseparator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-    gtk_grid_attach(GTK_GRID(Table) , Hseparator , 0 , 6 , 1 , 1);
+    gtk_grid_attach(GTK_GRID(Table) , Hseparator , 0 , 6 , 2 , 1);
     
 
     gtk_grid_set_row_spacing(GTK_GRID(Table), 3);
     gtk_grid_set_column_spacing(GTK_GRID(Table), 3);
 
-}
-static void SetFontSize(GtkWidget *win,int Size)
-{
-    PangoFontDescription *font_desc = pango_font_description_from_string ("Serif 13");
-    pango_font_description_set_size (font_desc, Size * PANGO_SCALE);
-
-    gtk_widget_override_font(win,font_desc);
-   // gtk_widget_modify_font (win, font_desc);
-    pango_font_description_free (font_desc);
 }
 void SendSet(GtkWidget *Hbox)
 {
@@ -322,53 +325,64 @@ void SendSet(GtkWidget *Hbox)
 	GtkWidget *Hseparator;
 	GtkWidget *Vpaned;
 	GtkWidget *SendFrame;
+    GtkWidget *EntrySendCycle;
+    GtkWidget *LabelSendFile;
+    GtkWidget *LabelClear;
 	GtkWidget *LabelSpace;
-	GtkWidget *LabelSpace1;
 	GtkWidget *Table;
 	
-	Vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
+	
+    Vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
 	gtk_container_add (GTK_CONTAINER (Hbox), Vpaned);
 	SendFrame = gtk_frame_new ("Send Setting");
 	gtk_frame_set_label_align(GTK_FRAME(SendFrame),0.5,0.3);
-	//SetFontSize(SendFrame,12);
 	gtk_widget_show (SendFrame);
 	gtk_paned_pack1 (GTK_PANED (Vpaned), SendFrame, FALSE, TRUE);
 	
 	Table = gtk_grid_new();
 	gtk_container_add (GTK_CONTAINER (SendFrame), Table);
-    gtk_box_pack_start (GTK_BOX (Hbox), Table, FALSE, FALSE, 0);
 	gtk_grid_set_column_homogeneous(GTK_GRID(Table),TRUE);
 	
 	LabelSpace = gtk_label_new(" ");
-	gtk_grid_attach(GTK_GRID(Table) ,LabelSpace , 0 , 0 , 1 , 1);
+	gtk_grid_attach(GTK_GRID(Table) ,LabelSpace , 0 , 0 , 2 , 1);
 
-	CheckReWriteFile = gtk_check_button_new_with_label("Receive Write File");
-	gtk_grid_attach(GTK_GRID(Table) , CheckReWriteFile , 0 , 1 , 1 , 1);
+	CheckReWriteFile = gtk_check_button_new_with_label("Use File Data");
+	gtk_grid_attach(GTK_GRID(Table) , CheckReWriteFile , 0 , 1 , 2 , 1);
 	
-	CheckReTime      = gtk_check_button_new_with_label("Display Receive time");
-	gtk_grid_attach(GTK_GRID(Table) , CheckReTime , 0 , 2 , 1 , 1);
+	CheckReTime      = gtk_check_button_new_with_label("Auto Empty");
+	gtk_grid_attach(GTK_GRID(Table) , CheckReTime , 0 , 2 ,2 , 1);
 	
-	CheckHex         = gtk_check_button_new_with_label("Display Hex");
-	gtk_grid_attach(GTK_GRID(Table) , CheckHex , 0 , 3 , 1 , 1);
+	CheckHex         = gtk_check_button_new_with_label("Send Hex");
+	gtk_grid_attach(GTK_GRID(Table) , CheckHex , 0 , 3 , 2 , 1);
 	
-	CheckStop        = gtk_check_button_new_with_label("DisPlay stop");	
-    gtk_grid_attach(GTK_GRID(Table) , CheckStop , 0 , 4, 1 , 1);
+	CheckStop        = gtk_check_button_new_with_label("Auto Send Cycle");	
+    gtk_grid_attach(GTK_GRID(Table) , CheckStop , 0 , 4, 2 , 1);
     
-    LabelSpace1 = gtk_label_new(" ");
-    gtk_grid_attach(GTK_GRID(Table) , LabelSpace1 , 0 , 5 , 1 , 1);
- 
+    EntrySendCycle = gtk_entry_new();
+    gtk_entry_set_max_length(GTK_ENTRY(EntrySendCycle),6);
+    gtk_entry_set_text(GTK_ENTRY(EntrySendCycle),"1000");
+    gtk_grid_attach(GTK_GRID(Table) , EntrySendCycle , 0 , 5, 2 , 1);
+    
+    LabelSendFile= gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Send File</span>""</a>");
+    gtk_label_set_use_markup (GTK_LABEL (LabelSendFile), TRUE); 
+    gtk_grid_attach(GTK_GRID(Table) , LabelSendFile , 0 , 6, 1 , 1);
+    
+    LabelClear= gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Clear</span>""</a>");
+    gtk_label_set_use_markup (GTK_LABEL (LabelClear), TRUE); 
+    gtk_grid_attach(GTK_GRID(Table) , LabelClear , 1 , 6, 1 , 1);
+
    	Hseparator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-    gtk_grid_attach(GTK_GRID(Table) , Hseparator , 0 , 6 , 1 , 1);
+    gtk_grid_attach(GTK_GRID(Table) , Hseparator , 0 , 7 , 2 , 1);
     
     gtk_grid_set_row_spacing(GTK_GRID(Table), 3);
     gtk_grid_set_column_spacing(GTK_GRID(Table), 3);
 
-	
 }
 GtkWidget *CreateUartSetFace(GtkWidget *Hbox,UartSetFace *ULC)
 {
 	GtkWidget *Vbox;
-	Vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL,0);	
+	
+    Vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL,0);	
 	gtk_box_pack_start (GTK_BOX (Hbox), Vbox, FALSE, FALSE, 0);
 	SerialPortSetup(Vbox);	
     ReceiveSet(Vbox);
@@ -396,7 +410,7 @@ GtkWidget *CreateUartTextFace(GtkWidget *Hbox,UartTextFace *URC)
 	gtk_box_pack_start (GTK_BOX (Hbox), right_vbox, FALSE, FALSE, 0);
 	gtk_widget_set_size_request (right_vbox, 500, -1);
 
-	right_vpaned = gtk_vpaned_new ();
+	right_vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
 	gtk_widget_show (right_vpaned);
 	gtk_container_add (GTK_CONTAINER (right_vbox), right_vpaned);
   
