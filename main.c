@@ -71,6 +71,12 @@ typedef struct
 }UartControl;
 
 int gnSwitchSatue;
+GMutex Mutex;
+GCond Cond;
+int Serialfd;
+int ShowHex;
+int Redirect;
+gpointer ThreadRet;
 int MessageReport(const char *Title,const char *Msg,int nType)
 {
     GtkWidget *dialog;
@@ -445,12 +451,54 @@ void UnLockSetSerial(UartControl *uc)
 	gtk_widget_set_sensitive(uc->ULC.SelectStop, TRUE);
 	gtk_widget_set_sensitive(uc->ULC.SelectData, TRUE);
 	
-}       	
+}   
+int DataHandle(const char *ReadBuf)
+{
+	if(Redirect == 1)
+	{
+		;
+	}	
+	else
+	{
+		;	
+	}		
+}    
+gpointer ReadUart(gpointer data)
+{
+	UartControl *uc = (UartControl *) data;
+	int ReadLen;
+	fd_set rd;
+    unsigned char ReadBuf[1024] = {0};
+    while(1)
+    {
+    	FD_ZERO(&rd);
+  		FD_SET(Serialfd,&rd);
+  		while(FD_ISSET(Serialfd,&rd))
+  		{
+    		if(select(Serialfd+1,&rd,NULL,NULL,NULL) < 0)
+      			MessageReport(("Read Serial"),("Read Serial Fail"),ERROR);
+    		else
+    		{
+      			g_mutex_lock(&Mutex);
+				ReadLen = read(Serialfd, ReadBuf, 1024);
+				g_cond_signal (&Cond);
+				g_mutex_unlock(&Mutex);
+				DataHandle(ReadBuf);
+      		}
+    	}
+  	}
+		
+}
+gpointer CreateReadUart(UartControl *uc)
+{
+	return g_thread_new("ReadUart",(GThreadFunc)ReadUart,(gpointer)uc);
+}
 static void OpenSerial(GtkWidget *Button,gpointer user_data)
 {
     int SwitchState;
     int OpenState;
 	UartControl *uc = (UartControl *) user_data;
+	
     SwitchState = GetSwitchState(gtk_button_get_label(GTK_BUTTON(Button)));
     if(SwitchState == CLOSE)
     {
@@ -461,7 +509,8 @@ static void OpenSerial(GtkWidget *Button,gpointer user_data)
         else
         {	
         	UnLockSetSerial(uc); 
-        	uc->UP.fd = -1;
+        	Serialfd = -1;
+        	g_thread_exit(ThreadRet);
         	gtk_button_set_label(GTK_BUTTON(Button),"● Open");
         	SetWidgetStyle(Button,"black",13);
         }	
@@ -475,8 +524,10 @@ static void OpenSerial(GtkWidget *Button,gpointer user_data)
         {	
    			LockSetSerial(uc);    
    			uc->UP.fd =  OpenState;	
+   			Serialfd = Serialfd;
         	gtk_button_set_label(GTK_BUTTON(Button),"● Close");
         	SetWidgetStyle(Button,"red",13);
+        	ThreadRet = CreateReadUart(uc);
    
 		}
     }    
@@ -1049,6 +1100,10 @@ int main(int argc, char **argv)
 	GtkWidget *MainWindow;
 	GtkWidget *Vbox;
 	UartControl uc;
+	 
+  	gdk_threads_init(); 
+    g_mutex_init(&Mutex);
+    g_cond_init (&Cond);
     gtk_init(&argc, &argv);
    
     MainWindow = CreateMainWindow();
