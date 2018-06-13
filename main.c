@@ -13,14 +13,15 @@
 #include <sys/stat.h>
 #include<gdk/gdkkeysyms.h>
 
-#define     OPEN     1
-#define     CLOSE    0
+#define     OPEN       1
+#define     CLOSE      0
 #define     TYPEMSG    "<span foreground='red'font_desc='13'>%s </span>"
 #define     ERROR      1
 #define     WARING     2
 #define     INFOR      3
 #define     QUESTION   4
-
+#define     CHOOSE     0
+#define     SAVE       1
 
 
 typedef struct 
@@ -67,6 +68,9 @@ typedef struct
 	UartTextFace     URC;
 	UartBottomFace   UDC;
 	UartParamete     UP;
+	int Filefd;
+	int ShowHex;
+	int  ChooseFile;
 	
 }UartControl;
 
@@ -74,7 +78,7 @@ int gnSwitchSatue;
 GMutex Mutex;
 GCond Cond;
 int Serialfd;
-int ShowHex;
+
 int Redirect;
 int ThreadEnd;
 int MessageReport(const char *Title,const char *Msg,int nType)
@@ -493,16 +497,22 @@ int AlignData(char *ReadBuf,int size,UartControl *uc)
     }
     vte_terminal_feed(VTE_TERMINAL(uc->URC.ReveTerminal), buffer_tmp->str, size);
 
-}        
+}     
+int WriteDataToFile(char *ReadBuf,int size,UartControl *uc)
+{
+	
+	printf("uc->Filefd = %d\r\n",uc->Filefd);	
+	
+}  
 int DataHandle(const char *ReadBuf,UartControl *uc)
 {
 	if(Redirect == 1)
 	{
-		;
+		WriteDataToFile(ReadBuf,strlen(ReadBuf),uc);
 	}	
 	else
 	{
-        if(ShowHex == 1)
+        if(uc->ShowHex == 1)
             ConversionHex(ReadBuf,strlen(ReadBuf),uc);
         else
             AlignData(ReadBuf,strlen(ReadBuf),uc);			
@@ -796,28 +806,86 @@ void ClearTerminalData (GtkLabel *label,
                			gpointer  user_data)
 {
 	UartControl *uc = (UartControl *) user_data;
+	static int i = 0;
+	uc->Filefd = i++;
 }               			 
-void SwitchReceive(GtkWidget *Check,gpointer  data)
+  
+GtkWidget* create_file_choose (UartControl *uc)
 {
-	switch((int)data)
-	{
-		case 1:
-			printf("select me!!!\r\n");
-			break;
-		case 2:
-			
-			break;
-		case 3:
-		    ShowHex = 1;	
-			break;
-		case 4:
-			
-			break;
-		default:
-			break;
-	}	
+    GtkWidget *dialog_vbox;
+    GtkWidget *dialog_action_area;
+    GtkWidget *button_cancel;
+    GtkWidget *button_ok;
+	GtkWidget *file_choose;
 	
-}      
+    if(uc->ChooseFile == CHOOSE) 
+    {
+        file_choose = gtk_file_chooser_dialog_new ("", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, NULL);
+        button_ok = gtk_button_new_from_stock ("gtk-open");
+    } else {
+        file_choose = gtk_file_chooser_dialog_new ("", NULL, GTK_FILE_CHOOSER_ACTION_SAVE, NULL);
+        button_ok = gtk_button_new_from_stock ("gtk-save");
+    }
+    gtk_window_set_type_hint (GTK_WINDOW (file_choose), GDK_WINDOW_TYPE_HINT_DIALOG);
+
+    //dialog_vbox = GTK_DIALOG (file_choose)->vbox;
+    //gtk_widget_show (dialog_vbox);
+//
+  //  dialog_action_area = GTK_DIALOG (file_choose)->action_area;
+  //  gtk_widget_show (dialog_action_area);
+  //  gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area), GTK_BUTTONBOX_END);
+
+    button_cancel = gtk_button_new_from_stock ("gtk-cancel");
+    gtk_widget_show (button_cancel);
+    gtk_dialog_add_action_widget (GTK_DIALOG (file_choose), button_cancel, GTK_RESPONSE_CANCEL);
+    //GTK_WIDGET_SET_FLAGS (button_cancel, GTK_CAN_DEFAULT);
+
+    gtk_widget_show (button_ok);
+    gtk_dialog_add_action_widget (GTK_DIALOG (file_choose), button_ok, GTK_RESPONSE_OK);
+    //GTK_WIDGET_SET_FLAGS (button_ok, GTK_CAN_DEFAULT);
+/*
+    g_signal_connect ((gpointer) button_cancel, "clicked",
+            G_CALLBACK (on_button_cancel_clicked),xcomdata);
+    g_signal_connect ((gpointer) button_ok, "clicked",
+            G_CALLBACK (on_button_ok_clicked),
+            xcomdata);
+  */  gtk_widget_grab_default (button_ok);
+
+    return file_choose;
+}
+
+int LoadFile (UartControl *uc)
+{
+	
+    GtkWidget *window_file_choose;
+    uc->ChooseFile = CHOOSE;  
+    window_file_choose = (GtkWidget *)create_file_choose(uc);
+    gtk_widget_show (window_file_choose);
+}
+void SwitchWriteFile(GtkWidget *Check,gpointer  data)
+{
+	UartControl *uc = (UartControl *) data;	
+	LoadFile(uc);
+}  
+void SwitchReceiveTime(GtkWidget *Check,gpointer  data)
+{
+	UartControl *uc = (UartControl *) data;	
+	
+} 
+
+void SwitchReceiveHex(GtkWidget *Check,gpointer  data)
+{
+	UartControl *uc = (UartControl *) data;
+	if(uc->ShowHex == 0)
+		uc->ShowHex = 1;
+	else
+		uc->ShowHex = 0;		
+} 
+
+void SwitchReceiveStop(GtkWidget *Check,gpointer  data)
+{
+	UartControl *uc = (UartControl *) data;	
+}   
 void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
 {
 	GtkWidget *CheckReWriteFile;
@@ -848,19 +916,19 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
 	
 	CheckReWriteFile = gtk_check_button_new_with_label("Receive Write File");
 	gtk_grid_attach(GTK_GRID(Table) , CheckReWriteFile , 0 , 1 , 2 , 1);
-	g_signal_connect(G_OBJECT(CheckReWriteFile), "released", G_CALLBACK(SwitchReceive), (gpointer)1);
+	g_signal_connect(G_OBJECT(CheckReWriteFile), "released", G_CALLBACK(SwitchWriteFile), (gpointer)uc);
 	
 	CheckReTime      = gtk_check_button_new_with_label("Display Receive time");
 	gtk_grid_attach(GTK_GRID(Table) , CheckReTime , 0 , 2 , 2 , 1);
-	g_signal_connect(G_OBJECT(CheckReTime), "released", G_CALLBACK(SwitchReceive), (gpointer) 2);
+	g_signal_connect(G_OBJECT(CheckReTime), "released", G_CALLBACK(SwitchReceiveTime), (gpointer)uc);
 	
 	CheckHex         = gtk_check_button_new_with_label("Display Hex");
 	gtk_grid_attach(GTK_GRID(Table) , CheckHex , 0 , 3 , 2 , 1);
-	g_signal_connect(G_OBJECT(CheckHex), "released", G_CALLBACK(SwitchReceive), (gpointer) 3);
+	g_signal_connect(G_OBJECT(CheckHex), "released", G_CALLBACK(SwitchReceiveHex), (gpointer)uc);
 	
 	CheckStop        = gtk_check_button_new_with_label("DisPlay stop");
     gtk_grid_attach(GTK_GRID(Table) , CheckStop , 0 , 4, 2 , 1);
-    g_signal_connect(G_OBJECT(CheckStop), "released", G_CALLBACK(SwitchReceive), (gpointer) 4);
+    g_signal_connect(G_OBJECT(CheckStop), "released", G_CALLBACK(SwitchReceiveStop), (gpointer)uc);
     
     LabelSave = gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Save</span>""</a>");
     gtk_label_set_use_markup (GTK_LABEL (LabelSave), TRUE); 
@@ -1144,6 +1212,8 @@ void SetDefaultSerial(UartControl *uc)
 	uc->UP.UartStop = 1;
 	uc->UP.UartData = 8;
 	uc->UP.fd = -1;
+	uc->ShowHex = 0;
+	uc->Filefd = -1;
 	
 }
 int main(int argc, char **argv)
