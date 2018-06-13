@@ -76,7 +76,7 @@ GCond Cond;
 int Serialfd;
 int ShowHex;
 int Redirect;
-gpointer ThreadRet;
+int ThreadEnd;
 int MessageReport(const char *Title,const char *Msg,int nType)
 {
     GtkWidget *dialog;
@@ -196,7 +196,7 @@ GtkWidget *SetComPort(void)
     gtk_list_store_append(Store,&Iter);
     gtk_list_store_set(Store,&Iter,0,"ttyS0",-1);
     gtk_list_store_append(Store,&Iter);
-    gtk_list_store_set(Store,&Iter,0,"ttyS1",-1);
+    gtk_list_store_set(Store,&Iter,0,"ttyUSB0",-1);
     gtk_list_store_append(Store,&Iter);
     gtk_list_store_set(Store,&Iter,0,"ttyS2",-1);
     gtk_list_store_append(Store,&Iter);
@@ -452,7 +452,49 @@ void UnLockSetSerial(UartControl *uc)
 	gtk_widget_set_sensitive(uc->ULC.SelectData, TRUE);
 	
 }   
-int DataHandle(const char *ReadBuf)
+
+int ConversionHex(char *ReadBuf,int size,UartControl *uc)
+{
+    static gchar data_byte[6];
+    gint i = 0;
+    if(size == 0)
+    return -1;
+
+    while(i < size) 
+    {
+        sprintf(data_byte, "%02X ", (guchar)ReadBuf[i]);
+        i++;
+        vte_terminal_feed(VTE_TERMINAL(uc->URC.ReveTerminal), data_byte, 3);
+        if((guchar)ReadBuf[i-1] == 0x0A)
+            vte_terminal_feed(VTE_TERMINAL(uc->URC.ReveTerminal),"\r\n", -1);
+    }
+
+}        
+int AlignData(char *ReadBuf,int size,UartControl *uc)
+{
+    int pos;
+    GString *buffer_tmp;
+    gchar *in_buffer;
+
+    buffer_tmp =  g_string_new(ReadBuf);
+    in_buffer=buffer_tmp->str;
+    in_buffer += size;
+
+    for (pos = size; pos > 0; pos--) {
+        in_buffer--;
+        if(*in_buffer=='\r' && *(in_buffer+1) != '\n'){
+            g_string_insert_c(buffer_tmp, pos, '\n');
+            size += 1;
+        }
+        if(*in_buffer=='\n' && *(in_buffer-1) != '\r'){
+            g_string_insert_c(buffer_tmp, pos-1, '\r');
+            size += 1;
+        }
+    }
+    vte_terminal_feed(VTE_TERMINAL(uc->URC.ReveTerminal), buffer_tmp->str, size);
+
+}        
+int DataHandle(const char *ReadBuf,UartControl *uc)
 {
 	if(Redirect == 1)
 	{
@@ -460,7 +502,10 @@ int DataHandle(const char *ReadBuf)
 	}	
 	else
 	{
-		;	
+        if(ShowHex == 1)
+            ConversionHex(ReadBuf,strlen(ReadBuf),uc);
+        else
+            AlignData(ReadBuf,strlen(ReadBuf),uc);			
 	}		
 }    
 gpointer ReadUart(gpointer data)
@@ -469,21 +514,26 @@ gpointer ReadUart(gpointer data)
 	int ReadLen;
 	fd_set rd;
     unsigned char ReadBuf[1024] = {0};
+    struct timeval Timeout={0,0}; 
     while(1)
     {
     	FD_ZERO(&rd);
   		FD_SET(Serialfd,&rd);
   		while(FD_ISSET(Serialfd,&rd))
   		{
-    		if(select(Serialfd+1,&rd,NULL,NULL,NULL) < 0)
+    	    if(ThreadEnd == 1)
+                g_thread_exit(NULL);    
+            if(select(Serialfd+1,&rd,NULL,NULL,&Timeout) < 0)
       			MessageReport(("Read Serial"),("Read Serial Fail"),ERROR);
     		else
     		{
+                usleep(20000);
       			g_mutex_lock(&Mutex);
 				ReadLen = read(Serialfd, ReadBuf, 1024);
 				g_cond_signal (&Cond);
 				g_mutex_unlock(&Mutex);
-				DataHandle(ReadBuf);
+				DataHandle(ReadBuf,uc);
+                memset(ReadBuf,'\0',strlen(ReadBuf));
       		}
     	}
   	}
@@ -502,15 +552,16 @@ static void OpenSerial(GtkWidget *Button,gpointer user_data)
     SwitchState = GetSwitchState(gtk_button_get_label(GTK_BUTTON(Button)));
     if(SwitchState == CLOSE)
     {
-        if(uc->UP.fd < 0)
+        if(Serialfd < 0)
         {
         	MessageReport(("close Serial"),("close Serial Fail"),ERROR);
         }	
         else
-        {	
+        {
+            ThreadEnd = 1;
         	UnLockSetSerial(uc); 
+            close(Serialfd);
         	Serialfd = -1;
-        	g_thread_exit(ThreadRet);
         	gtk_button_set_label(GTK_BUTTON(Button),"● Open");
         	SetWidgetStyle(Button,"black",13);
         }	
@@ -521,13 +572,13 @@ static void OpenSerial(GtkWidget *Button,gpointer user_data)
         if(OpenState < 0)
         	MessageReport(("Open Serial"),("Open Serial Fail"),ERROR);
         else
-        {	
+        {	ThreadEnd = 0;
    			LockSetSerial(uc);    
    			uc->UP.fd =  OpenState;	
-   			Serialfd = Serialfd;
+   			Serialfd = OpenState;
         	gtk_button_set_label(GTK_BUTTON(Button),"● Close");
         	SetWidgetStyle(Button,"red",13);
-        	ThreadRet = CreateReadUart(uc);
+        	CreateReadUart(uc);
    
 		}
     }    
@@ -757,7 +808,7 @@ void SwitchReceive(GtkWidget *Check,gpointer  data)
 			
 			break;
 		case 3:
-			
+		    ShowHex = 1;	
 			break;
 		case 4:
 			
