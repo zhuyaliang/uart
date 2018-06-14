@@ -21,7 +21,7 @@
 #define     INFOR      3
 #define     QUESTION   4
 #define     CHOOSE     0
-#define     SAVE       1
+#define     READFILE   1
 
 
 typedef struct 
@@ -68,9 +68,12 @@ typedef struct
 	UartTextFace     URC;
 	UartBottomFace   UDC;
 	UartParamete     UP;
-	int Filefd;
-	int ShowHex;
-	int  ChooseFile;
+	int              Filefd;
+	int              ShowHex;
+	int              Redirect;
+	int              ShowTime;
+	int              ChooseFile;
+	GtkWidget       *ChooseDialog;
 	
 }UartControl;
 
@@ -79,7 +82,7 @@ GMutex Mutex;
 GCond Cond;
 int Serialfd;
 
-int Redirect;
+
 int ThreadEnd;
 int MessageReport(const char *Title,const char *Msg,int nType)
 {
@@ -473,10 +476,56 @@ int ConversionHex(char *ReadBuf,int size,UartControl *uc)
             vte_terminal_feed(VTE_TERMINAL(uc->URC.ReveTerminal),"\r\n", -1);
     }
 
-}        
+}    
+void AddReceiveTime(UartControl *uc)
+{
+	struct tm *t;
+    time_t tt;
+    time(&tt);
+    t = localtime(&tt);
+    char TimeBuf[128] = { 0 };
+    sprintf(TimeBuf,"%4d-%02d-%02d  %02d:%02d:%02d\r\n", t->tm_year + 1900, 
+    													 t->tm_mon + 1, 
+    													 t->tm_mday, 
+    													 t->tm_hour, 
+    													 t->tm_min, 
+    													 t->tm_sec);
+	vte_terminal_feed(VTE_TERMINAL(uc->URC.ReveTerminal), TimeBuf, strlen(TimeBuf));
+}    
 int AlignData(char *ReadBuf,int size,UartControl *uc)
 {
     int pos;
+    int AddTime = 0;
+    GString *buffer_tmp;
+    gchar *in_buffer;
+
+    buffer_tmp =  g_string_new(ReadBuf);
+    in_buffer=buffer_tmp->str;
+    in_buffer += size;
+
+    for (pos = size; pos > 0; pos--) {
+        in_buffer--;
+        if(*in_buffer=='\r' && *(in_buffer+1) != '\n'){
+            g_string_insert_c(buffer_tmp, pos, '\n');
+            size += 1;
+        }
+        if(*in_buffer=='\n' && *(in_buffer-1) != '\r'){
+            g_string_insert_c(buffer_tmp, pos-1, '\r');
+            AddTime = 1;
+            size += 1;
+        }
+    }
+    if(uc->ShowTime == 1 && AddTime == 1)
+    {
+    	AddReceiveTime(uc);	
+    	AddTime = 0;
+    }	
+    vte_terminal_feed(VTE_TERMINAL(uc->URC.ReveTerminal), buffer_tmp->str, size);
+
+}     
+int WriteDataToFile(char *ReadBuf,int size,UartControl *uc)
+{
+	int pos;
     GString *buffer_tmp;
     gchar *in_buffer;
 
@@ -495,18 +544,11 @@ int AlignData(char *ReadBuf,int size,UartControl *uc)
             size += 1;
         }
     }
-    vte_terminal_feed(VTE_TERMINAL(uc->URC.ReveTerminal), buffer_tmp->str, size);
-
-}     
-int WriteDataToFile(char *ReadBuf,int size,UartControl *uc)
-{
-	
-	printf("uc->Filefd = %d\r\n",uc->Filefd);	
-	
+	write(uc->Filefd,buffer_tmp->str, size);
 }  
-int DataHandle(const char *ReadBuf,UartControl *uc)
+int DataHandle(char *ReadBuf,UartControl *uc)
 {
-	if(Redirect == 1)
+	if(uc->Redirect == 1)
 	{
 		WriteDataToFile(ReadBuf,strlen(ReadBuf),uc);
 	}	
@@ -806,71 +848,144 @@ void ClearTerminalData (GtkLabel *label,
                			gpointer  user_data)
 {
 	UartControl *uc = (UartControl *) user_data;
-	static int i = 0;
-	uc->Filefd = i++;
-}               			 
-  
-GtkWidget* create_file_choose (UartControl *uc)
+	
+}     
+int OpenFileName  (const char * FileName)
+{
+	int fd = -1;
+	int Ret;
+	
+	if(access(FileName,F_OK) == -1 )
+	{
+		fd = open(FileName,O_RDWR|O_APPEND|O_CREAT,0777);
+		if(fd < 0)
+		{
+			MessageReport(("Create File"),("Create File Fail"),ERROR);
+		}	
+	}
+	else if(access(FileName, W_OK) == -1)
+	{
+		MessageReport(("Open File"),("Open File Fail"),ERROR);	
+	}	
+	else
+	{
+		Ret = MessageReport(("Ooen File"),("Whether to clear the contents of the file"),QUESTION);	
+		if(Ret == GTK_RESPONSE_YES)
+    	{
+        	fd = open(FileName,O_WRONLY|O_APPEND|O_TRUNC);	
+        	if(fd < 0)
+        	{
+        		MessageReport(("Create File"),("Create File Fail"),ERROR);
+        	}	
+    	}
+    	else 
+    	{
+        	fd = open(FileName,O_WRONLY|O_APPEND);	
+        	if(fd < 0)
+        	{
+        		MessageReport(("Create File"),("Create File Fail"),ERROR);
+        	}	
+    	}
+	}			
+		
+	return fd;
+}        			 
+void ChooseFileWrite (GtkButton *button, gpointer data)
+{
+    char *FileName = NULL;
+    int fd;
+    UartControl *uc = (UartControl *)data;
+
+    FileName = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (uc->ChooseDialog));
+   
+    switch (uc->ChooseFile ){
+        case 0:
+           	fd = OpenFileName(FileName);
+           	if(fd > 0 )
+           	{	
+           		uc->Filefd = fd;
+           		uc->Redirect = 1;	
+           	}
+            break;
+        case 1:
+            break;
+        default:
+            break;
+
+    }
+    gtk_widget_destroy(GTK_WIDGET(uc->ChooseDialog));
+}
+void  CloseChooseFileWrite(GtkButton *button, gpointer data)
+{
+	UartControl *uc = (UartControl *)data;
+    gtk_widget_destroy(GTK_WIDGET(uc->ChooseDialog));
+    uc->Redirect = 1;
+}
+
+GtkWidget* CreateFileChoose (UartControl *uc)
 {
     GtkWidget *dialog_vbox;
     GtkWidget *dialog_action_area;
-    GtkWidget *button_cancel;
-    GtkWidget *button_ok;
-	GtkWidget *file_choose;
+    GtkWidget *ButtonCancel;
+    GtkWidget *ButtonOk;
+	GtkWidget *FileChoose;
 	
     if(uc->ChooseFile == CHOOSE) 
     {
-        file_choose = gtk_file_chooser_dialog_new ("", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, NULL);
-        button_ok = gtk_button_new_from_stock ("gtk-open");
-    } else {
-        file_choose = gtk_file_chooser_dialog_new ("", NULL, GTK_FILE_CHOOSER_ACTION_SAVE, NULL);
-        button_ok = gtk_button_new_from_stock ("gtk-save");
+        FileChoose = gtk_file_chooser_dialog_new ("Choose Write File", NULL, GTK_FILE_CHOOSER_ACTION_SAVE, NULL);
+        ButtonOk = gtk_button_new_with_label ("save");
     }
-    gtk_window_set_type_hint (GTK_WINDOW (file_choose), GDK_WINDOW_TYPE_HINT_DIALOG);
+    else 
+    {
+    	FileChoose = gtk_file_chooser_dialog_new ("", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, NULL);
+        ButtonOk = gtk_button_new_with_label ("Choose");	
+    }
+    
+    uc->ChooseDialog = FileChoose;
+    gtk_window_set_type_hint (GTK_WINDOW (FileChoose), GDK_WINDOW_TYPE_HINT_DIALOG);
 
-    //dialog_vbox = GTK_DIALOG (file_choose)->vbox;
-    //gtk_widget_show (dialog_vbox);
-//
-  //  dialog_action_area = GTK_DIALOG (file_choose)->action_area;
-  //  gtk_widget_show (dialog_action_area);
-  //  gtk_button_box_set_layout (GTK_BUTTON_BOX (dialog_action_area), GTK_BUTTONBOX_END);
+    ButtonCancel = gtk_button_new_with_label ("Cancel");
+    gtk_widget_show (ButtonCancel);
+    gtk_dialog_add_action_widget (GTK_DIALOG (FileChoose), ButtonCancel, GTK_RESPONSE_CANCEL);
+  
+    gtk_widget_show (ButtonOk);
+    gtk_dialog_add_action_widget (GTK_DIALOG (FileChoose), ButtonOk, GTK_RESPONSE_OK);
+   
+    g_signal_connect ((gpointer) ButtonCancel, "clicked",
+            G_CALLBACK (CloseChooseFileWrite),uc);
+    g_signal_connect ((gpointer) ButtonOk, "clicked",
+            G_CALLBACK (ChooseFileWrite),uc);
+    gtk_widget_grab_default (ButtonOk);
 
-    button_cancel = gtk_button_new_from_stock ("gtk-cancel");
-    gtk_widget_show (button_cancel);
-    gtk_dialog_add_action_widget (GTK_DIALOG (file_choose), button_cancel, GTK_RESPONSE_CANCEL);
-    //GTK_WIDGET_SET_FLAGS (button_cancel, GTK_CAN_DEFAULT);
-
-    gtk_widget_show (button_ok);
-    gtk_dialog_add_action_widget (GTK_DIALOG (file_choose), button_ok, GTK_RESPONSE_OK);
-    //GTK_WIDGET_SET_FLAGS (button_ok, GTK_CAN_DEFAULT);
-/*
-    g_signal_connect ((gpointer) button_cancel, "clicked",
-            G_CALLBACK (on_button_cancel_clicked),xcomdata);
-    g_signal_connect ((gpointer) button_ok, "clicked",
-            G_CALLBACK (on_button_ok_clicked),
-            xcomdata);
-  */  gtk_widget_grab_default (button_ok);
-
-    return file_choose;
+    return FileChoose;
 }
 
 int LoadFile (UartControl *uc)
 {
 	
-    GtkWidget *window_file_choose;
-    uc->ChooseFile = CHOOSE;  
-    window_file_choose = (GtkWidget *)create_file_choose(uc);
-    gtk_widget_show (window_file_choose);
+    GtkWidget *WindowFileChoose;
+     
+    WindowFileChoose = (GtkWidget *)CreateFileChoose(uc);
+    gtk_widget_show (WindowFileChoose);
 }
 void SwitchWriteFile(GtkWidget *Check,gpointer  data)
 {
 	UartControl *uc = (UartControl *) data;	
-	LoadFile(uc);
+	if(uc->Redirect == 1)
+		uc->Redirect = 0;
+	else
+	{	
+		uc->ChooseFile = CHOOSE; 
+		LoadFile(uc);
+	}	
 }  
 void SwitchReceiveTime(GtkWidget *Check,gpointer  data)
 {
 	UartControl *uc = (UartControl *) data;	
-	
+	if(uc->ShowTime == 0)
+		uc->ShowTime = 1;
+	else
+		uc->ShowTime = 0;
 } 
 
 void SwitchReceiveHex(GtkWidget *Check,gpointer  data)
@@ -881,11 +996,7 @@ void SwitchReceiveHex(GtkWidget *Check,gpointer  data)
 	else
 		uc->ShowHex = 0;		
 } 
-
-void SwitchReceiveStop(GtkWidget *Check,gpointer  data)
-{
-	UartControl *uc = (UartControl *) data;	
-}   
+  
 void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
 {
 	GtkWidget *CheckReWriteFile;
@@ -926,22 +1037,18 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
 	gtk_grid_attach(GTK_GRID(Table) , CheckHex , 0 , 3 , 2 , 1);
 	g_signal_connect(G_OBJECT(CheckHex), "released", G_CALLBACK(SwitchReceiveHex), (gpointer)uc);
 	
-	CheckStop        = gtk_check_button_new_with_label("DisPlay stop");
-    gtk_grid_attach(GTK_GRID(Table) , CheckStop , 0 , 4, 2 , 1);
-    g_signal_connect(G_OBJECT(CheckStop), "released", G_CALLBACK(SwitchReceiveStop), (gpointer)uc);
-    
     LabelSave = gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Save</span>""</a>");
     gtk_label_set_use_markup (GTK_LABEL (LabelSave), TRUE); 
-    gtk_grid_attach(GTK_GRID(Table) , LabelSave , 0 , 5, 1 , 1);
+    gtk_grid_attach(GTK_GRID(Table) , LabelSave , 0 , 4, 1 , 1);
 	g_signal_connect(G_OBJECT(LabelSave), "activate-link", G_CALLBACK(user_function), (gpointer) uc);     
 
     LabelClear = gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Clear</span>""</a>");
     gtk_label_set_use_markup (GTK_LABEL (LabelClear), TRUE); 
-    gtk_grid_attach(GTK_GRID(Table) , LabelClear , 1 , 5, 1 , 1); 
+    gtk_grid_attach(GTK_GRID(Table) , LabelClear , 1 , 4, 1 , 1); 
 	g_signal_connect(G_OBJECT(LabelClear), "activate-link", G_CALLBACK(ClearTerminalData), (gpointer) uc);
 
    	Hseparator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-    gtk_grid_attach(GTK_GRID(Table) , Hseparator , 0 , 6 , 2 , 1);
+    gtk_grid_attach(GTK_GRID(Table) , Hseparator , 0 , 5 , 2 , 1);
     
 
     gtk_grid_set_row_spacing(GTK_GRID(Table), 3);
@@ -1214,6 +1321,7 @@ void SetDefaultSerial(UartControl *uc)
 	uc->UP.fd = -1;
 	uc->ShowHex = 0;
 	uc->Filefd = -1;
+	uc->Redirect = 0;
 	
 }
 int main(int argc, char **argv)
