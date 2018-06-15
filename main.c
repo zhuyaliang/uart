@@ -20,8 +20,8 @@
 #define     WARING     2
 #define     INFOR      3
 #define     QUESTION   4
-#define     CHOOSE     0
-#define     READFILE   1
+#define     SAVE       0
+#define     CHOOSE     1
 
 
 typedef struct 
@@ -31,6 +31,7 @@ typedef struct
 	GtkWidget *SelectParity;
 	GtkWidget *SelectStop;
 	GtkWidget *SelectData;
+    GtkWidget *CheckAutoSend;
 	GtkWidget *EntrySendCycle;
 	
 }UartSetFace;
@@ -73,8 +74,11 @@ typedef struct
 	int              Redirect;
 	int              ShowTime;
 	int              ChooseFile;
-	GtkWidget       *ChooseDialog;
-    int              SendHex;
+    int              AutoCleanSendData;
+    int              UseFile;
+    int              UseFilefd;
+    int              AutoSend;
+    GtkWidget       *ChooseDialog;
 	
 }UartControl;
 
@@ -83,9 +87,8 @@ GMutex Mutex;
 int CurrentData;
 GCond Cond;
 int Serialfd;
-
-
 int ThreadEnd;
+GtkWidget *MainWindow;
 int MessageReport(const char *Title,const char *Msg,int nType)
 {
     GtkWidget *dialog;
@@ -94,7 +97,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
     {
         case ERROR:
         {
-            dialog = gtk_message_dialog_new(NULL,
+            dialog = gtk_message_dialog_new(MainWindow,
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_ERROR,
                                             GTK_BUTTONS_OK,
@@ -103,7 +106,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
         }
         case WARING:
         {
-            dialog = gtk_message_dialog_new(NULL,
+            dialog = gtk_message_dialog_new(MainWindow,
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_WARNING,
                                             GTK_BUTTONS_OK,
@@ -112,7 +115,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
         }
         case INFOR:
         {
-            dialog = gtk_message_dialog_new(NULL,
+            dialog = gtk_message_dialog_new(MainWindow,
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_INFO,
                                             GTK_BUTTONS_OK,
@@ -121,7 +124,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
         }
         case QUESTION:
         {
-            dialog = gtk_message_dialog_new(NULL,
+            dialog = gtk_message_dialog_new(MainWindow,
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_QUESTION,
                                             GTK_BUTTONS_YES_NO,
@@ -491,7 +494,7 @@ int ConversionHex(char *ReadBuf,int size,UartControl *uc)
         AddTime = 1;
         Frist = 1;
     } 
-    if(AddTime == 1)
+    if(AddTime == 1 && uc->ShowTime == 1)
     {
         AddReceiveTime(uc);	
         AddTime = 0;
@@ -519,7 +522,6 @@ int AlignData(char *ReadBuf,int size,UartControl *uc)
     buffer_tmp =  g_string_new(ReadBuf);
     in_buffer=buffer_tmp->str;
     in_buffer += size;
-
     if(Frist == 0 && size > 0)
     {
         AddTime = 1; 
@@ -574,7 +576,7 @@ int WriteDataToFile(char *ReadBuf,int size,UartControl *uc)
 }  
 int DataHandle(char *ReadBuf,UartControl *uc)
 {
-	if(uc->Redirect == 1)
+	if(uc->Redirect == 1 && uc->Filefd > 0)
 	{
 		WriteDataToFile(ReadBuf,strlen(ReadBuf),uc);
 	}	
@@ -605,7 +607,7 @@ gpointer ReadUart(gpointer data)
       			MessageReport(("Read Serial"),("Read Serial Fail"),ERROR);
     		else
     		{
-                usleep(20000);
+                usleep(200000);
       			g_mutex_lock(&Mutex);
 				ReadLen = read(Serialfd, ReadBuf, 1024);
 				g_cond_signal (&Cond);
@@ -642,6 +644,11 @@ static void OpenSerial(GtkWidget *Button,gpointer user_data)
             close(Serialfd);
         	Serialfd = -1;
             uc->UP.fd = -1;
+            if(uc->Redirect == 1 && uc->Filefd > 0)
+            {
+                close(uc->Filefd);
+                uc->Filefd = -1;
+            }        
         	gtk_button_set_label(GTK_BUTTON(Button),"● Open");
         	SetWidgetStyle(Button,"black",13);
         }	
@@ -897,9 +904,9 @@ int OpenFileName  (const char * FileName)
 	{
 		MessageReport(("Open File"),("Open File Fail"),ERROR);	
 	}	
-	else
+    else
 	{
-		Ret = MessageReport(("Ooen File"),("Whether to clear the contents of the file"),QUESTION);	
+		Ret = MessageReport(("Open File"),("Whether to clear the contents of the file"),QUESTION);	
 		if(Ret == GTK_RESPONSE_YES)
     	{
         	fd = open(FileName,O_WRONLY|O_APPEND|O_TRUNC);	
@@ -920,6 +927,23 @@ int OpenFileName  (const char * FileName)
 		
 	return fd;
 }        			 
+int OpenUseFile (const char *FileName)
+{
+    int fd = -1;
+    
+    if(access(FileName,R_OK) == -1)
+	{
+		MessageReport(("Open File"),("Open File Fail"),ERROR);	
+        return -1;
+	}
+
+    fd = open(FileName,O_RDONLY);	
+    if(fd < 0)
+    {
+        MessageReport(("Create File"),("Create File Fail"),ERROR);
+    }	
+    return fd;    
+}        
 void ChooseFileWrite (GtkButton *button, gpointer data)
 {
     char *FileName = NULL;
@@ -929,15 +953,19 @@ void ChooseFileWrite (GtkButton *button, gpointer data)
     FileName = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (uc->ChooseDialog));
    
     switch (uc->ChooseFile ){
-        case 0:
+        case SAVE:
            	fd = OpenFileName(FileName);
            	if(fd > 0 )
            	{	
            		uc->Filefd = fd;
-           		uc->Redirect = 1;	
            	}
             break;
-        case 1:
+        case CHOOSE:
+            fd = OpenUseFile(FileName);
+            if(fd > 0)
+            {
+                uc->UseFilefd = fd;
+            }        
             break;
         default:
             break;
@@ -949,7 +977,6 @@ void  CloseChooseFileWrite(GtkButton *button, gpointer data)
 {
 	UartControl *uc = (UartControl *)data;
     gtk_widget_destroy(GTK_WIDGET(uc->ChooseDialog));
-    uc->Redirect = 1;
 }
 
 GtkWidget* CreateFileChoose (UartControl *uc)
@@ -960,7 +987,7 @@ GtkWidget* CreateFileChoose (UartControl *uc)
     GtkWidget *ButtonOk;
 	GtkWidget *FileChoose;
 	
-    if(uc->ChooseFile == CHOOSE) 
+    if(uc->ChooseFile == SAVE) 
     {
         FileChoose = gtk_file_chooser_dialog_new ("Choose Write File", NULL, GTK_FILE_CHOOSER_ACTION_SAVE, NULL);
         ButtonOk = gtk_button_new_with_label ("save");
@@ -985,7 +1012,7 @@ GtkWidget* CreateFileChoose (UartControl *uc)
             G_CALLBACK (CloseChooseFileWrite),uc);
     g_signal_connect ((gpointer) ButtonOk, "clicked",
             G_CALLBACK (ChooseFileWrite),uc);
-    gtk_widget_grab_default (ButtonOk);
+    //gtk_widget_grab_default (ButtonOk);
 
     return FileChoose;
 }
@@ -1005,8 +1032,9 @@ void SwitchWriteFile(GtkWidget *Check,gpointer  data)
 		uc->Redirect = 0;
 	else
 	{	
-		uc->ChooseFile = CHOOSE; 
+		uc->ChooseFile = SAVE; 
 		LoadFile(uc);
+        uc->Redirect = 1;
 	}	
 }  
 void SwitchReceiveTime(GtkWidget *Check,gpointer  data)
@@ -1085,33 +1113,59 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
     gtk_grid_set_column_spacing(GTK_GRID(Table), 3);
 
 }
-
-void SwitchSendHex(GtkWidget *Check,gpointer  data)
+void SetAutoSend (UartControl *uc)
 {
-	UartControl *uc = (UartControl *) data;
-	if(uc->SendHex == 0)
-		uc->SendHex = 1;
-	else
-		uc->SendHex = 0;		
-	
-}
-
+    const char *text;
+    int Time;
+    
+    text = gtk_entry_get_text(GTK_ENTRY(uc->ULC.EntrySendCycle));
+    Time = atoi(text);
+    
+}        
 void SwitchAutoSend(GtkWidget *Check,gpointer  data)
 {
 	UartControl *uc = (UartControl *) data;
+
+    if(uc->AutoSend == 0)
+    {
+        uc->AutoSend = 1;
+        gtk_widget_set_sensitive(uc->ULC.UseFile, FALSE);
+        gtk_widget_set_sensitive(uc->ULC.EntrySendCycle, FALSE);
+        SetAutoSend(uc);
+    }
+    else
+    {
+        uc->AutoSend = 0;
+        gtk_widget_set_sensitive(uc->ULC.UseFile, TRUE);
+        gtk_widget_set_sensitive(uc->ULC.EntrySendCycle,TREU);
+    }        
 	
 }
 
 void SwitchAutoClean(GtkWidget *Check,gpointer  data)
 {
 	UartControl *uc = (UartControl *) data;
-	
+	if(uc->AutoCleanSendData == 0)
+		uc->AutoCleanSendData = 1;
+	else
+		uc->AutoCleanSendData = 0;		
 }
 
 void SwitchUseFile(GtkWidget *Check,gpointer  data)
 {
 	UartControl *uc = (UartControl *) data;
-	
+    if(uc->UseFile == 0)
+    {
+        uc->ChooseFile = CHOOSE; 
+		LoadFile(uc);
+        uc->UseFile = 1;
+        gtk_widget_set_sensitive(uc->ULC.CheckAutoSend, FALSE);
+    }        
+    else
+    {
+        uc->UseFile = 0;
+        gtk_widget_set_sensitive(uc->ULC.CheckAutoSend, TRUE);
+    }        
 }
 
 void SendFile (GtkLabel *label,
@@ -1125,12 +1179,12 @@ void ClearSendData (GtkLabel *label,
                			gpointer  user_data)
 {
 	UartControl *uc = (UartControl *) user_data;
+    CleanSendDate(uc);
 }
 void SendSet(GtkWidget *Hbox,UartControl *uc)
 {
 	GtkWidget *CheckAutoSend;
 	GtkWidget *CheckUseFile;
-	GtkWidget *CheckSendHex;
 	GtkWidget *CheckAutoClean;
 	GtkWidget *Hseparator;
 	GtkWidget *Vpaned;
@@ -1170,15 +1224,9 @@ void SendSet(GtkWidget *Hbox,UartControl *uc)
                     G_CALLBACK(SwitchAutoClean), 
                     (gpointer) uc);
 	
-	CheckSendHex         = gtk_check_button_new_with_label("Send Hex");
-	gtk_grid_attach(GTK_GRID(Table) , CheckSendHex , 0 , 3 , 2 , 1);
-	g_signal_connect(G_OBJECT(CheckSendHex), 
-                    "released", 
-                    G_CALLBACK(SwitchSendHex), 
-                    (gpointer) uc);
-	
 	CheckAutoSend        = gtk_check_button_new_with_label("Auto Send Cycle");	
-    gtk_grid_attach(GTK_GRID(Table) , CheckAutoSend , 0 , 4, 2 , 1);
+    uc->ULC.CheckAutoSend = CheckAutoSend;
+    gtk_grid_attach(GTK_GRID(Table) , CheckAutoSend , 0 , 3, 2 , 1);
     g_signal_connect(G_OBJECT(CheckAutoSend), 
                     "released", 
                     G_CALLBACK(SwitchAutoSend), 
@@ -1188,20 +1236,20 @@ void SendSet(GtkWidget *Hbox,UartControl *uc)
     gtk_entry_set_max_length(GTK_ENTRY(EntrySendCycle),6);
     gtk_entry_set_text(GTK_ENTRY(EntrySendCycle),"1000");
     uc->ULC.EntrySendCycle = EntrySendCycle;
-    gtk_grid_attach(GTK_GRID(Table) , EntrySendCycle , 0 , 5, 2 , 1);
+    gtk_grid_attach(GTK_GRID(Table) , EntrySendCycle , 0 , 4, 2 , 1);
     
     LabelSendFile= gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Send File</span>""</a>");
     gtk_label_set_use_markup (GTK_LABEL (LabelSendFile), TRUE);
     g_signal_connect(G_OBJECT(LabelSendFile), "activate-link", G_CALLBACK(SendFile), (gpointer) uc); 
-    gtk_grid_attach(GTK_GRID(Table) , LabelSendFile , 0 , 6, 1 , 1);
+    gtk_grid_attach(GTK_GRID(Table) , LabelSendFile , 0 , 5, 1 , 1);
     
     LabelClear= gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Clear</span>""</a>");
     gtk_label_set_use_markup (GTK_LABEL (LabelClear), TRUE); 
     g_signal_connect(G_OBJECT(LabelClear), "activate-link", G_CALLBACK(ClearSendData), (gpointer) uc);
-    gtk_grid_attach(GTK_GRID(Table) , LabelClear , 1 , 6, 1 , 1);
+    gtk_grid_attach(GTK_GRID(Table) , LabelClear , 1 , 5, 1 , 1);
 
    	Hseparator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-    gtk_grid_attach(GTK_GRID(Table) , Hseparator , 0 , 7 , 2 , 1);
+    gtk_grid_attach(GTK_GRID(Table) , Hseparator , 0 , 6 , 2 , 1);
     
     gtk_grid_set_row_spacing(GTK_GRID(Table), 3);
     gtk_grid_set_column_spacing(GTK_GRID(Table), 3);
@@ -1318,9 +1366,15 @@ GtkWidget *CreateUartTextFace(GtkWidget *Hbox,UartControl *uc)
         
     return Vbox;
 }
+void CleanSendDate(UartControl *uc)
+{
+    GtkTextBuffer *Buffer = NULL;
+   
+    Buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (uc->URC.SendText)); 
+    gtk_text_buffer_set_text (GTK_TEXT_BUFFER(Buffer), (""), -1);	
+}        
 int WriteUart(const char *WriteData,int WriteLen,UartControl *uc)
 {
-    char num[32] = {0};
     int Ret;
 
     g_mutex_lock (&Mutex);
@@ -1335,8 +1389,46 @@ int WriteUart(const char *WriteData,int WriteLen,UartControl *uc)
     {
         MessageReport(("Send Data"),("Send data fail,Send length is 0"),ERROR);
     }
+    if(uc->AutoCleanSendData == 1)
+    {
+        CleanSendDate(uc); 
+    }        
     return Ret;
 
+}       
+gpointer SendUseFileUart(gpointer data)
+{
+    UartControl *uc = (UartControl *) data;
+    int WriteLen;
+    int Ret;
+    char WriteData[100] = { 0 };
+    
+    gtk_widget_set_sensitive(uc->UDC.Button, FALSE);
+    
+    while(1)
+    {        
+        if(uc->UseFile == 0  ||  uc->UseFilefd < 0 )
+        {   printf("aaaaaaaaaaaaaa\r\n");
+            gtk_widget_set_sensitive(uc->UDC.Button,TRUE);
+            close(uc->UseFilefd);
+            uc->UseFilefd = -1;
+            g_thread_exit(NULL);
+        }
+        WriteLen = read(uc->UseFilefd,WriteData,100);
+        if(WriteLen <= 0)
+        {
+                gtk_widget_set_sensitive(uc->UDC.Button,TRUE);
+                close(uc->UseFilefd);
+                uc->UseFilefd = -1;
+                break;
+                
+        }
+        else
+        {
+            WriteUart(WriteData,WriteLen,uc);
+        }
+    }
+    g_thread_exit(NULL);
 }        
 void SendData (GtkLabel *Button,gpointer  data)
 {
@@ -1351,26 +1443,28 @@ void SendData (GtkLabel *Button,gpointer  data)
         MessageReport(("Send Data"),("Send data fail, Serial don`t open"),ERROR);
         return;
     }
-    Buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (uc->URC.SendText));
-    gtk_text_buffer_get_bounds (GTK_TEXT_BUFFER(Buffer), &Start, &End);
-    text = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(Buffer), &Start, &End, FALSE);
-    SendLen = strlen(text);
-    if(SendLen > 0)
+    if(uc->UseFile == 1 && uc->UseFilefd > 0 )
     {
-        if(uc->SendHex == 1)
-        {
+        g_thread_new("SendUart",(GThreadFunc)SendUseFileUart,(gpointer)uc);
         
+    }
+    else
+    {        
+        Buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (uc->URC.SendText));
+        gtk_text_buffer_get_bounds (GTK_TEXT_BUFFER(Buffer), &Start, &End);
+        text = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(Buffer), &Start, &End, FALSE);
+        SendLen = strlen(text);
+        if(SendLen > 0)
+        {
+            SendLen += 1;     
+            text[strlen(text)] = '\n';
+            WriteUart(text,SendLen,uc);
         }
         else
         {
-            WriteUart(text,SendLen,uc);
+            MessageReport(("Send Data"),("Send data can not be empty"),ERROR);
         }        
-    }
-    else
-    {
-        MessageReport(("Send Data"),("Send data can not be empty"),ERROR);
-    }        
-            
+    }       
 }
 void CreateUartBottom(GtkWidget *Vbox,UartControl *uc)
 {
@@ -1441,14 +1535,15 @@ void SetDefaultSerial(UartControl *uc)
 	uc->UP.fd      = -1;
 	uc->ShowHex     = 0;
 	uc->Filefd     = -1;
+    uc->UseFilefd  = -1;
 	uc->Redirect    = 0;
     uc->ShowTime    = 0;
-    uc->SendHex     = 0;
-	
+    uc->AutoCleanSendData = 0; 
+    uc->UseFile     = 0;	
+    uc->AutoSend    = 0;
 }
 int main(int argc, char **argv)
 {
-	GtkWidget *MainWindow;
 	GtkWidget *Vbox;
 	UartControl uc;
 	 
@@ -1466,6 +1561,4 @@ int main(int argc, char **argv)
 	CreateFace(Vbox,&uc);
     gtk_widget_show_all(MainWindow);
     gtk_main ();  
-    
-
 }
