@@ -32,6 +32,7 @@ typedef struct
 	GtkWidget *SelectStop;
 	GtkWidget *SelectData;
     GtkWidget *CheckAutoSend;
+    GtkWidget *CheckUseFile;
 	GtkWidget *EntrySendCycle;
 	
 }UartSetFace;
@@ -78,6 +79,7 @@ typedef struct
     int              UseFile;
     int              UseFilefd;
     int              AutoSend;
+    int              TimeId;
     GtkWidget       *ChooseDialog;
 	
 }UartControl;
@@ -89,6 +91,8 @@ GCond Cond;
 int Serialfd;
 int ThreadEnd;
 GtkWidget *MainWindow;
+void CleanSendDate(UartControl *uc);
+int WriteUart(const char *WriteData,int WriteLen,UartControl *uc);
 int MessageReport(const char *Title,const char *Msg,int nType)
 {
     GtkWidget *dialog;
@@ -97,7 +101,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
     {
         case ERROR:
         {
-            dialog = gtk_message_dialog_new(MainWindow,
+            dialog = gtk_message_dialog_new(GTK_WINDOW(MainWindow),
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_ERROR,
                                             GTK_BUTTONS_OK,
@@ -106,7 +110,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
         }
         case WARING:
         {
-            dialog = gtk_message_dialog_new(MainWindow,
+            dialog = gtk_message_dialog_new(GTK_WINDOW(MainWindow),
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_WARNING,
                                             GTK_BUTTONS_OK,
@@ -115,7 +119,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
         }
         case INFOR:
         {
-            dialog = gtk_message_dialog_new(MainWindow,
+            dialog = gtk_message_dialog_new(GTK_WINDOW(MainWindow),
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_INFO,
                                             GTK_BUTTONS_OK,
@@ -124,7 +128,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
         }
         case QUESTION:
         {
-            dialog = gtk_message_dialog_new(MainWindow,
+            dialog = gtk_message_dialog_new(GTK_WINDOW(MainWindow),
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_QUESTION,
                                             GTK_BUTTONS_YES_NO,
@@ -1113,14 +1117,48 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
     gtk_grid_set_column_spacing(GTK_GRID(Table), 3);
 
 }
+gboolean AutoWriteUart (gpointer data)
+{
+    UartControl *uc = (UartControl *) data;
+    int SendLen = 0;
+    GtkTextIter Start,End;
+    GtkTextBuffer *Buffer = NULL;
+    gchar *text = NULL;
+    
+    Buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW (uc->URC.SendText));
+    gtk_text_buffer_get_bounds (GTK_TEXT_BUFFER(Buffer), &Start, &End);
+    text = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(Buffer), &Start, &End, FALSE);
+    SendLen = strlen(text);
+    printf("text = %d\r\n",SendLen);
+    if(SendLen > 0)
+    {
+        SendLen += 1;     
+        text[strlen(text)] = '\n';
+        WriteUart(text,SendLen,uc);
+    }
+}        
 void SetAutoSend (UartControl *uc)
 {
     const char *text;
-    int Time;
+    int CycleTime;
+    int TimeId;
     
     text = gtk_entry_get_text(GTK_ENTRY(uc->ULC.EntrySendCycle));
-    Time = atoi(text);
-    
+    CycleTime = atoi(text);
+    if(CycleTime == 0)
+    {
+        MessageReport(("Auto Send Data"),("Auto Send data fail,No setting time"),ERROR);
+    } 
+    else
+    {        
+        TimeId = g_timeout_add(CycleTime,(GSourceFunc)AutoWriteUart,uc); 
+        uc->TimeId = TimeId;
+    }
+}        
+void RemoveAutoSend(UartControl *uc)
+{
+    if(uc->TimeId > 0)
+        g_source_remove(uc->TimeId);
 }        
 void SwitchAutoSend(GtkWidget *Check,gpointer  data)
 {
@@ -1129,15 +1167,18 @@ void SwitchAutoSend(GtkWidget *Check,gpointer  data)
     if(uc->AutoSend == 0)
     {
         uc->AutoSend = 1;
-        gtk_widget_set_sensitive(uc->ULC.UseFile, FALSE);
+        gtk_widget_set_sensitive(uc->ULC.CheckUseFile, FALSE);
         gtk_widget_set_sensitive(uc->ULC.EntrySendCycle, FALSE);
+        gtk_widget_set_sensitive(uc->UDC.Button,FALSE);
         SetAutoSend(uc);
     }
     else
     {
         uc->AutoSend = 0;
-        gtk_widget_set_sensitive(uc->ULC.UseFile, TRUE);
-        gtk_widget_set_sensitive(uc->ULC.EntrySendCycle,TREU);
+        gtk_widget_set_sensitive(uc->ULC.CheckUseFile, TRUE);
+        gtk_widget_set_sensitive(uc->ULC.EntrySendCycle,TRUE);
+        gtk_widget_set_sensitive(uc->UDC.Button,TRUE);
+        RemoveAutoSend(uc);
     }        
 	
 }
@@ -1212,6 +1253,7 @@ void SendSet(GtkWidget *Hbox,UartControl *uc)
 
 	CheckUseFile = gtk_check_button_new_with_label("Use File Data");
 	gtk_grid_attach(GTK_GRID(Table) , CheckUseFile , 0 , 1 , 2 , 1);
+    uc->ULC.CheckUseFile = CheckUseFile;
 	g_signal_connect(G_OBJECT(CheckUseFile), 
                     "released", 
                     G_CALLBACK(SwitchUseFile), 
@@ -1408,7 +1450,7 @@ gpointer SendUseFileUart(gpointer data)
     while(1)
     {        
         if(uc->UseFile == 0  ||  uc->UseFilefd < 0 )
-        {   printf("aaaaaaaaaaaaaa\r\n");
+        {  
             gtk_widget_set_sensitive(uc->UDC.Button,TRUE);
             close(uc->UseFilefd);
             uc->UseFilefd = -1;
@@ -1541,6 +1583,7 @@ void SetDefaultSerial(UartControl *uc)
     uc->AutoCleanSendData = 0; 
     uc->UseFile     = 0;	
     uc->AutoSend    = 0;
+    uc->TimeId      = -1;
 }
 int main(int argc, char **argv)
 {
