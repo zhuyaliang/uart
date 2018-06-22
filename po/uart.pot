@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-21 18:15+0800\n"
+"POT-Creation-Date: 2018-06-22 15:39+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,214 +17,220 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/main.c:150
-msgid "Message"
-msgstr ""
-
-#: ../src/main.c:187
+#: ../src/main.c:17
 msgid "Serial port assistant"
 msgstr ""
 
-#: ../src/main.c:618
+#: ../src/uart-read.c:128
+msgid "RX:"
+msgstr ""
+
+#: ../src/uart-read.c:153
 msgid "Read Serial"
 msgstr ""
 
-#: ../src/main.c:618
+#: ../src/uart-read.c:153
 msgid "Read Serial Fail"
 msgstr ""
 
-#: ../src/main.c:649
-msgid "close Serial"
-msgstr ""
-
-#: ../src/main.c:649
-msgid "close Serial Fail"
-msgstr ""
-
-#: ../src/main.c:663
-msgid "● Open"
-msgstr ""
-
-#: ../src/main.c:671
-msgid "Open Serial"
-msgstr ""
-
-#: ../src/main.c:671
-msgid "Open Serial Fail"
-msgstr ""
-
-#: ../src/main.c:677
-msgid "● Close"
-msgstr ""
-
-#: ../src/main.c:798
-msgid "Serial Setting and open Serial"
-msgstr ""
-
-#: ../src/main.c:821
-msgid "Serial Setting"
-msgstr ""
-
-#: ../src/main.c:836
-msgid "Serial Number"
-msgstr ""
-
-#: ../src/main.c:846
-msgid "Baud Rate"
-msgstr ""
-
-#: ../src/main.c:856
-msgid "Parity Bit"
-msgstr ""
-
-#: ../src/main.c:866
-msgid "Data Bit"
-msgstr ""
-
-#: ../src/main.c:876
-msgid "Stop Bit"
-msgstr ""
-
-#: ../src/main.c:885
-msgid "● open"
-msgstr ""
-
-#: ../src/main.c:925 ../src/main.c:940 ../src/main.c:948 ../src/main.c:968
-msgid "Create File"
-msgstr ""
-
-#: ../src/main.c:925 ../src/main.c:940 ../src/main.c:948 ../src/main.c:968
-msgid "Create File Fail"
-msgstr ""
-
-#: ../src/main.c:930 ../src/main.c:934 ../src/main.c:961
-msgid "Open File"
-msgstr ""
-
-#: ../src/main.c:930 ../src/main.c:961
-msgid "Open File Fail"
-msgstr ""
-
-#: ../src/main.c:934
-msgid "Whether to clear the contents of the file"
-msgstr ""
-
-#: ../src/main.c:1017
-msgid "Choose Write File"
-msgstr ""
-
-#: ../src/main.c:1018
-msgid "save"
-msgstr ""
-
-#: ../src/main.c:1023
-msgid "Choose"
-msgstr ""
-
-#: ../src/main.c:1029
-msgid "Cancel"
-msgstr ""
-
-#: ../src/main.c:1090 ../src/main.c:1108
-msgid "Receive Setting"
-msgstr ""
-
-#: ../src/main.c:1125
-msgid "Receive Write File"
-msgstr ""
-
-#: ../src/main.c:1129
-msgid "Display Receive time"
-msgstr ""
-
-#: ../src/main.c:1133
-msgid "Display Hex"
-msgstr ""
-
-#: ../src/main.c:1137
-msgid "<a href=\"null\"><span color=\"#0266C8\">Save</span></a>"
-msgstr ""
-
-#: ../src/main.c:1142 ../src/main.c:1337
-msgid "<a href=\"null\"><span color=\"#0266C8\">Clear</span></a>"
-msgstr ""
-
-#: ../src/main.c:1185
-msgid "Auto Send Data"
-msgstr ""
-
-#: ../src/main.c:1185
-msgid "Auto Send data fail,No setting time"
-msgstr ""
-
-#: ../src/main.c:1267 ../src/main.c:1286
-msgid "Send Setting"
-msgstr ""
-
-#: ../src/main.c:1303
-msgid "Use File Data"
-msgstr ""
-
-#: ../src/main.c:1311
-msgid "Auto Empty"
-msgstr ""
-
-#: ../src/main.c:1318
-msgid "Auto Send Cycle"
-msgstr ""
-
-#: ../src/main.c:1332
-msgid "<a href=\"null\"><span color=\"#0266C8\">Send File</span></a>"
-msgstr ""
-
-#: ../src/main.c:1369
+#: ../src/uart-text.c:9
 msgid "Receive Data"
 msgstr ""
 
-#: ../src/main.c:1377
+#: ../src/uart-text.c:17
 msgid "Receive Data From Serial"
 msgstr ""
 
-#: ../src/main.c:1429 ../src/main.c:1512 ../src/main.c:1565 ../src/main.c:1587
+#: ../src/uart-text.c:69 ../src/uart-bottom.c:51 ../src/uart-bottom.c:73
 msgid "Send Data"
 msgstr ""
 
-#: ../src/main.c:1442
+#: ../src/uart-text.c:82
 msgid "Send Data Serial"
 msgstr ""
 
-#: ../src/main.c:1512
-msgid "Send data fail,Send length is 0"
-msgstr ""
-
-#: ../src/main.c:1565
+#: ../src/uart-bottom.c:51
 msgid "Send data fail, Serial don`t open"
 msgstr ""
 
-#: ../src/main.c:1587
+#: ../src/uart-bottom.c:73
 msgid "Send data can not be empty"
 msgstr ""
 
-#: ../src/main.c:1598
+#: ../src/uart-bottom.c:84
 msgid "Receive Count"
 msgstr ""
 
-#: ../src/main.c:1608
+#: ../src/uart-bottom.c:93
 msgid "Send Count"
 msgstr ""
 
-#: ../src/main.c:1627
+#: ../src/uart-bottom.c:112
 msgid "Serial Assistant"
 msgstr ""
 
-#: ../src/main.c:1634
+#: ../src/uart-bottom.c:119
 msgid "RX:    0"
 msgstr ""
 
-#: ../src/main.c:1646
+#: ../src/uart-bottom.c:131
 msgid "TX:    0"
 msgstr ""
 
-#: ../src/main.c:1658
+#: ../src/uart-bottom.c:143
 msgid "Send"
+msgstr ""
+
+#: ../src/uart-receive.c:59 ../src/uart-receive.c:77
+msgid "Receive Setting"
+msgstr ""
+
+#: ../src/uart-receive.c:95
+msgid "Receive Write File"
+msgstr ""
+
+#: ../src/uart-receive.c:102
+msgid "Display Receive time"
+msgstr ""
+
+#: ../src/uart-receive.c:109
+msgid "Display Hex"
+msgstr ""
+
+#: ../src/uart-receive.c:116
+msgid "<a href=\"null\"><span color=\"#0266C8\">Save</span></a>"
+msgstr ""
+
+#: ../src/uart-receive.c:124 ../src/uart-send.c:189
+msgid "<a href=\"null\"><span color=\"#0266C8\">Clear</span></a>"
+msgstr ""
+
+#: ../src/uart-write.c:6
+msgid "TX:"
+msgstr ""
+
+#: ../src/uart-config.c:13
+msgid "Serial Setting and open Serial"
+msgstr ""
+
+#: ../src/uart-config.c:192
+msgid "close Serial"
+msgstr ""
+
+#: ../src/uart-config.c:192
+msgid "close Serial Fail"
+msgstr ""
+
+#: ../src/uart-config.c:198
+msgid "● Open"
+msgstr ""
+
+#: ../src/uart-config.c:206
+msgid "Open Serial"
+msgstr ""
+
+#: ../src/uart-config.c:206
+msgid "Open Serial Fail"
+msgstr ""
+
+#: ../src/uart-config.c:212
+msgid "● Close"
+msgstr ""
+
+#: ../src/uart-config.c:357
+msgid "Serial Setting"
+msgstr ""
+
+#: ../src/uart-config.c:373
+msgid "Serial Number"
+msgstr ""
+
+#: ../src/uart-config.c:386
+msgid "Baud Rate"
+msgstr ""
+
+#: ../src/uart-config.c:399
+msgid "Parity Bit"
+msgstr ""
+
+#: ../src/uart-config.c:412
+msgid "Data Bit"
+msgstr ""
+
+#: ../src/uart-config.c:425
+msgid "Stop Bit"
+msgstr ""
+
+#: ../src/uart-config.c:437
+msgid "● open"
+msgstr ""
+
+#: ../src/uart-send.c:35
+msgid "Auto Send Data"
+msgstr ""
+
+#: ../src/uart-send.c:35
+msgid "Auto Send data fail,No setting time"
+msgstr ""
+
+#: ../src/uart-send.c:118 ../src/uart-send.c:137
+msgid "Send Setting"
+msgstr ""
+
+#: ../src/uart-send.c:155
+msgid "Use File Data"
+msgstr ""
+
+#: ../src/uart-send.c:163
+msgid "Auto Empty"
+msgstr ""
+
+#: ../src/uart-send.c:170
+msgid "Auto Send Cycle"
+msgstr ""
+
+#: ../src/uart-send.c:184
+msgid "<a href=\"null\"><span color=\"#0266C8\">Send File</span></a>"
+msgstr ""
+
+#: ../src/uart-share.c:50
+msgid "Message"
+msgstr ""
+
+#: ../src/uart-share.c:91 ../src/uart-share.c:106 ../src/uart-share.c:114
+#: ../src/uart-share.c:135
+msgid "Create File"
+msgstr ""
+
+#: ../src/uart-share.c:91 ../src/uart-share.c:106 ../src/uart-share.c:114
+#: ../src/uart-share.c:135
+msgid "Create File Fail"
+msgstr ""
+
+#: ../src/uart-share.c:96 ../src/uart-share.c:100 ../src/uart-share.c:128
+msgid "Open File"
+msgstr ""
+
+#: ../src/uart-share.c:96 ../src/uart-share.c:128
+msgid "Open File Fail"
+msgstr ""
+
+#: ../src/uart-share.c:100
+msgid "Whether to clear the contents of the file"
+msgstr ""
+
+#: ../src/uart-share.c:186
+msgid "Choose Write File"
+msgstr ""
+
+#: ../src/uart-share.c:191
+msgid "save"
+msgstr ""
+
+#: ../src/uart-share.c:200
+msgid "Choose"
+msgstr ""
+
+#: ../src/uart-share.c:206
+msgid "Cancel"
 msgstr ""

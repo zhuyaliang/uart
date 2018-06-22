@@ -1,9 +1,9 @@
-uart-main.o: main.c /usr/include/stdc-predef.h uart-init.h uart.h \
- /usr/include/sys/stat.h /usr/include/features.h /usr/include/sys/cdefs.h \
- /usr/include/bits/wordsize.h /usr/include/bits/long-double.h \
- /usr/include/gnu/stubs.h /usr/include/gnu/stubs-64.h \
- /usr/include/bits/types.h /usr/include/bits/typesizes.h \
- /usr/include/bits/types/struct_timespec.h \
+uart-uart-write.o: uart-write.c /usr/include/stdc-predef.h uart-write.h \
+ uart.h /usr/include/sys/stat.h /usr/include/features.h \
+ /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
+ /usr/include/bits/long-double.h /usr/include/gnu/stubs.h \
+ /usr/include/gnu/stubs-64.h /usr/include/bits/types.h \
+ /usr/include/bits/typesizes.h /usr/include/bits/types/struct_timespec.h \
  /usr/include/bits/types/time_t.h /usr/include/bits/stat.h \
  /usr/include/fcntl.h /usr/include/bits/fcntl.h \
  /usr/include/bits/fcntl-linux.h /usr/include/gtk-3.0/gtk/gtk.h \
@@ -647,12 +647,11 @@ uart-main.o: main.c /usr/include/stdc-predef.h uart-init.h uart.h \
  /usr/include/vte-2.91/vte/vteterminal.h \
  /usr/include/vte-2.91/vte/vtetypebuiltins.h \
  /usr/include/vte-2.91/vte/vteversion.h \
- /usr/include/vte-2.91/vte/vtedeprecated.h uart-config.h uart-share.h \
- uart-text.h uart-receive.h uart-send.h uart-bottom.h
+ /usr/include/vte-2.91/vte/vtedeprecated.h uart-share.h
 
 /usr/include/stdc-predef.h:
 
-uart-init.h:
+uart-write.h:
 
 uart.h:
 
@@ -2148,14 +2147,4 @@ uart.h:
 
 /usr/include/vte-2.91/vte/vtedeprecated.h:
 
-uart-config.h:
-
 uart-share.h:
-
-uart-text.h:
-
-uart-receive.h:
-
-uart-send.h:
-
-uart-bottom.h:

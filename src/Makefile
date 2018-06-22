@@ -103,7 +103,11 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_uart_OBJECTS = uart-main.$(OBJEXT)
+am_uart_OBJECTS = uart-main.$(OBJEXT) uart-uart-config.$(OBJEXT) \
+	uart-uart-init.$(OBJEXT) uart-uart-share.$(OBJEXT) \
+	uart-uart-read.$(OBJEXT) uart-uart-text.$(OBJEXT) \
+	uart-uart-receive.$(OBJEXT) uart-uart-write.$(OBJEXT) \
+	uart-uart-send.$(OBJEXT) uart-uart-bottom.$(OBJEXT)
 uart_OBJECTS = $(am_uart_OBJECTS)
 am__DEPENDENCIES_1 =
 uart_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
@@ -319,7 +323,7 @@ mandir = ${datarootdir}/man
 mkdir_p = $(MKDIR_P)
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr/local
+prefix = /usr
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -330,7 +334,12 @@ target_alias =
 top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
-uart_SOURCES = main.c 
+uart_SOURCES = main.c      uart.h      uart-config.h uart-config.c \
+			   uart-init.h uart-init.c uart-share.h  uart-share.c\
+			   uart-read.h uart-read.c uart-text.h   uart-text.c \
+			   uart-receive.h uart-receive.c uart-write.h uart-write.c\
+			   uart-send.h uart-send.c uart-bottom.h uart-bottom.c 
+
 uart_CFLAGS = \
     $(GLIB_CFLAGS)  \
     $(GTK_CFLAGS)  \
@@ -440,6 +449,15 @@ distclean-compile:
 	-rm -f *.tab.c
 
 include ./$(DEPDIR)/uart-main.Po
+include ./$(DEPDIR)/uart-uart-bottom.Po
+include ./$(DEPDIR)/uart-uart-config.Po
+include ./$(DEPDIR)/uart-uart-init.Po
+include ./$(DEPDIR)/uart-uart-read.Po
+include ./$(DEPDIR)/uart-uart-receive.Po
+include ./$(DEPDIR)/uart-uart-send.Po
+include ./$(DEPDIR)/uart-uart-share.Po
+include ./$(DEPDIR)/uart-uart-text.Po
+include ./$(DEPDIR)/uart-uart-write.Po
 
 .c.o:
 	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -475,6 +493,132 @@ uart-main.obj: main.c
 #	$(AM_V_CC)source='main.c' object='uart-main.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+uart-uart-config.o: uart-config.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-config.o -MD -MP -MF $(DEPDIR)/uart-uart-config.Tpo -c -o uart-uart-config.o `test -f 'uart-config.c' || echo '$(srcdir)/'`uart-config.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-config.Tpo $(DEPDIR)/uart-uart-config.Po
+#	$(AM_V_CC)source='uart-config.c' object='uart-uart-config.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-config.o `test -f 'uart-config.c' || echo '$(srcdir)/'`uart-config.c
+
+uart-uart-config.obj: uart-config.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-config.obj -MD -MP -MF $(DEPDIR)/uart-uart-config.Tpo -c -o uart-uart-config.obj `if test -f 'uart-config.c'; then $(CYGPATH_W) 'uart-config.c'; else $(CYGPATH_W) '$(srcdir)/uart-config.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-config.Tpo $(DEPDIR)/uart-uart-config.Po
+#	$(AM_V_CC)source='uart-config.c' object='uart-uart-config.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-config.obj `if test -f 'uart-config.c'; then $(CYGPATH_W) 'uart-config.c'; else $(CYGPATH_W) '$(srcdir)/uart-config.c'; fi`
+
+uart-uart-init.o: uart-init.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-init.o -MD -MP -MF $(DEPDIR)/uart-uart-init.Tpo -c -o uart-uart-init.o `test -f 'uart-init.c' || echo '$(srcdir)/'`uart-init.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-init.Tpo $(DEPDIR)/uart-uart-init.Po
+#	$(AM_V_CC)source='uart-init.c' object='uart-uart-init.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-init.o `test -f 'uart-init.c' || echo '$(srcdir)/'`uart-init.c
+
+uart-uart-init.obj: uart-init.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-init.obj -MD -MP -MF $(DEPDIR)/uart-uart-init.Tpo -c -o uart-uart-init.obj `if test -f 'uart-init.c'; then $(CYGPATH_W) 'uart-init.c'; else $(CYGPATH_W) '$(srcdir)/uart-init.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-init.Tpo $(DEPDIR)/uart-uart-init.Po
+#	$(AM_V_CC)source='uart-init.c' object='uart-uart-init.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-init.obj `if test -f 'uart-init.c'; then $(CYGPATH_W) 'uart-init.c'; else $(CYGPATH_W) '$(srcdir)/uart-init.c'; fi`
+
+uart-uart-share.o: uart-share.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-share.o -MD -MP -MF $(DEPDIR)/uart-uart-share.Tpo -c -o uart-uart-share.o `test -f 'uart-share.c' || echo '$(srcdir)/'`uart-share.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-share.Tpo $(DEPDIR)/uart-uart-share.Po
+#	$(AM_V_CC)source='uart-share.c' object='uart-uart-share.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-share.o `test -f 'uart-share.c' || echo '$(srcdir)/'`uart-share.c
+
+uart-uart-share.obj: uart-share.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-share.obj -MD -MP -MF $(DEPDIR)/uart-uart-share.Tpo -c -o uart-uart-share.obj `if test -f 'uart-share.c'; then $(CYGPATH_W) 'uart-share.c'; else $(CYGPATH_W) '$(srcdir)/uart-share.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-share.Tpo $(DEPDIR)/uart-uart-share.Po
+#	$(AM_V_CC)source='uart-share.c' object='uart-uart-share.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-share.obj `if test -f 'uart-share.c'; then $(CYGPATH_W) 'uart-share.c'; else $(CYGPATH_W) '$(srcdir)/uart-share.c'; fi`
+
+uart-uart-read.o: uart-read.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-read.o -MD -MP -MF $(DEPDIR)/uart-uart-read.Tpo -c -o uart-uart-read.o `test -f 'uart-read.c' || echo '$(srcdir)/'`uart-read.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-read.Tpo $(DEPDIR)/uart-uart-read.Po
+#	$(AM_V_CC)source='uart-read.c' object='uart-uart-read.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-read.o `test -f 'uart-read.c' || echo '$(srcdir)/'`uart-read.c
+
+uart-uart-read.obj: uart-read.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-read.obj -MD -MP -MF $(DEPDIR)/uart-uart-read.Tpo -c -o uart-uart-read.obj `if test -f 'uart-read.c'; then $(CYGPATH_W) 'uart-read.c'; else $(CYGPATH_W) '$(srcdir)/uart-read.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-read.Tpo $(DEPDIR)/uart-uart-read.Po
+#	$(AM_V_CC)source='uart-read.c' object='uart-uart-read.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-read.obj `if test -f 'uart-read.c'; then $(CYGPATH_W) 'uart-read.c'; else $(CYGPATH_W) '$(srcdir)/uart-read.c'; fi`
+
+uart-uart-text.o: uart-text.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-text.o -MD -MP -MF $(DEPDIR)/uart-uart-text.Tpo -c -o uart-uart-text.o `test -f 'uart-text.c' || echo '$(srcdir)/'`uart-text.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-text.Tpo $(DEPDIR)/uart-uart-text.Po
+#	$(AM_V_CC)source='uart-text.c' object='uart-uart-text.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-text.o `test -f 'uart-text.c' || echo '$(srcdir)/'`uart-text.c
+
+uart-uart-text.obj: uart-text.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-text.obj -MD -MP -MF $(DEPDIR)/uart-uart-text.Tpo -c -o uart-uart-text.obj `if test -f 'uart-text.c'; then $(CYGPATH_W) 'uart-text.c'; else $(CYGPATH_W) '$(srcdir)/uart-text.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-text.Tpo $(DEPDIR)/uart-uart-text.Po
+#	$(AM_V_CC)source='uart-text.c' object='uart-uart-text.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-text.obj `if test -f 'uart-text.c'; then $(CYGPATH_W) 'uart-text.c'; else $(CYGPATH_W) '$(srcdir)/uart-text.c'; fi`
+
+uart-uart-receive.o: uart-receive.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-receive.o -MD -MP -MF $(DEPDIR)/uart-uart-receive.Tpo -c -o uart-uart-receive.o `test -f 'uart-receive.c' || echo '$(srcdir)/'`uart-receive.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-receive.Tpo $(DEPDIR)/uart-uart-receive.Po
+#	$(AM_V_CC)source='uart-receive.c' object='uart-uart-receive.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-receive.o `test -f 'uart-receive.c' || echo '$(srcdir)/'`uart-receive.c
+
+uart-uart-receive.obj: uart-receive.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-receive.obj -MD -MP -MF $(DEPDIR)/uart-uart-receive.Tpo -c -o uart-uart-receive.obj `if test -f 'uart-receive.c'; then $(CYGPATH_W) 'uart-receive.c'; else $(CYGPATH_W) '$(srcdir)/uart-receive.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-receive.Tpo $(DEPDIR)/uart-uart-receive.Po
+#	$(AM_V_CC)source='uart-receive.c' object='uart-uart-receive.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-receive.obj `if test -f 'uart-receive.c'; then $(CYGPATH_W) 'uart-receive.c'; else $(CYGPATH_W) '$(srcdir)/uart-receive.c'; fi`
+
+uart-uart-write.o: uart-write.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-write.o -MD -MP -MF $(DEPDIR)/uart-uart-write.Tpo -c -o uart-uart-write.o `test -f 'uart-write.c' || echo '$(srcdir)/'`uart-write.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-write.Tpo $(DEPDIR)/uart-uart-write.Po
+#	$(AM_V_CC)source='uart-write.c' object='uart-uart-write.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-write.o `test -f 'uart-write.c' || echo '$(srcdir)/'`uart-write.c
+
+uart-uart-write.obj: uart-write.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-write.obj -MD -MP -MF $(DEPDIR)/uart-uart-write.Tpo -c -o uart-uart-write.obj `if test -f 'uart-write.c'; then $(CYGPATH_W) 'uart-write.c'; else $(CYGPATH_W) '$(srcdir)/uart-write.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-write.Tpo $(DEPDIR)/uart-uart-write.Po
+#	$(AM_V_CC)source='uart-write.c' object='uart-uart-write.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-write.obj `if test -f 'uart-write.c'; then $(CYGPATH_W) 'uart-write.c'; else $(CYGPATH_W) '$(srcdir)/uart-write.c'; fi`
+
+uart-uart-send.o: uart-send.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-send.o -MD -MP -MF $(DEPDIR)/uart-uart-send.Tpo -c -o uart-uart-send.o `test -f 'uart-send.c' || echo '$(srcdir)/'`uart-send.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-send.Tpo $(DEPDIR)/uart-uart-send.Po
+#	$(AM_V_CC)source='uart-send.c' object='uart-uart-send.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-send.o `test -f 'uart-send.c' || echo '$(srcdir)/'`uart-send.c
+
+uart-uart-send.obj: uart-send.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-send.obj -MD -MP -MF $(DEPDIR)/uart-uart-send.Tpo -c -o uart-uart-send.obj `if test -f 'uart-send.c'; then $(CYGPATH_W) 'uart-send.c'; else $(CYGPATH_W) '$(srcdir)/uart-send.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-send.Tpo $(DEPDIR)/uart-uart-send.Po
+#	$(AM_V_CC)source='uart-send.c' object='uart-uart-send.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-send.obj `if test -f 'uart-send.c'; then $(CYGPATH_W) 'uart-send.c'; else $(CYGPATH_W) '$(srcdir)/uart-send.c'; fi`
+
+uart-uart-bottom.o: uart-bottom.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-bottom.o -MD -MP -MF $(DEPDIR)/uart-uart-bottom.Tpo -c -o uart-uart-bottom.o `test -f 'uart-bottom.c' || echo '$(srcdir)/'`uart-bottom.c
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-bottom.Tpo $(DEPDIR)/uart-uart-bottom.Po
+#	$(AM_V_CC)source='uart-bottom.c' object='uart-uart-bottom.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-bottom.o `test -f 'uart-bottom.c' || echo '$(srcdir)/'`uart-bottom.c
+
+uart-uart-bottom.obj: uart-bottom.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -MT uart-uart-bottom.obj -MD -MP -MF $(DEPDIR)/uart-uart-bottom.Tpo -c -o uart-uart-bottom.obj `if test -f 'uart-bottom.c'; then $(CYGPATH_W) 'uart-bottom.c'; else $(CYGPATH_W) '$(srcdir)/uart-bottom.c'; fi`
+	$(AM_V_at)$(am__mv) $(DEPDIR)/uart-uart-bottom.Tpo $(DEPDIR)/uart-uart-bottom.Po
+#	$(AM_V_CC)source='uart-bottom.c' object='uart-uart-bottom.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(uart_CFLAGS) $(CFLAGS) -c -o uart-uart-bottom.obj `if test -f 'uart-bottom.c'; then $(CYGPATH_W) 'uart-bottom.c'; else $(CYGPATH_W) '$(srcdir)/uart-bottom.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

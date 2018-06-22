@@ -28,7 +28,7 @@ top_srcdir = ..
 top_builddir = ..
 
 
-prefix = /usr/local
+prefix = /usr
 exec_prefix = ${prefix}
 datadir = ${datarootdir}
 datarootdir = ${prefix}/share
@@ -66,7 +66,16 @@ DISTFILES = Makefile.in.in POTFILES.in $(POFILES)
 EXTRA_DISTFILES = ChangeLog POTFILES.skip Makevars LINGUAS
 
 POTFILES = \
-	../src/main.c
+	../src/main.c \
+	../src/uart-read.c       \
+	../src/uart-text.c \
+	../src/uart-bottom.c   \
+	../src/uart-receive.c    \
+	../src/uart-write.c \
+	../src/uart-config.c    \
+	../src/uart-send.c \
+	../src/uart-init.c      \
+	../src/uart-share.c
 
 CATALOGS=$(shell LINGUAS="$(USE_LINGUAS)"; for lang in $$LINGUAS; do printf "$$lang.gmo "; done)
 

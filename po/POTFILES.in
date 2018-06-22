@@ -2,3 +2,12 @@
 # Please keep this file in alphabetical order.
 [encoding: UTF-8]
 src/main.c
+src/uart-read.c      
+src/uart-text.c
+src/uart-bottom.c  
+src/uart-receive.c   
+src/uart-write.c
+src/uart-config.c   
+src/uart-send.c
+src/uart-init.c     
+src/uart-share.c
