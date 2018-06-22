@@ -9,6 +9,8 @@
 #include <time.h>
 #include <math.h>
 #include <termios.h>
+#include <libintl.h> // gettext 库支持  
+#include <locale.h> // 本地化locale的翻译支持 
 #include <vte-2.91/vte/vte.h>
 #include <sys/stat.h>
 #include<gdk/gdkkeysyms.h>
@@ -22,6 +24,11 @@
 #define     QUESTION   4
 #define     SAVE       0
 #define     CHOOSE     1
+
+#define _(STRING)  gettext(STRING) //用别名_(STRING)替换gettext    (STRONG)
+#define PACKAGE    "uart" // 定义软件包的名字为hello
+#define LOCALEDIR  "/usr/share/locale/" 
+
 
 
 typedef struct 
@@ -140,7 +147,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
 
     }
     gtk_message_dialog_format_secondary_markup(GTK_MESSAGE_DIALOG(dialog),TYPEMSG,Msg);
-    gtk_window_set_title(GTK_WINDOW(dialog),("Message"));
+    gtk_window_set_title(GTK_WINDOW(dialog),_("Message"));
     nRet =  gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
     return nRet;
@@ -177,7 +184,7 @@ GtkWidget *CreateMainWindow(void)
     
     WindowMain = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     g_signal_connect_swapped(G_OBJECT(WindowMain), "destroy", G_CALLBACK(gtk_main_quit), NULL);  
-    gtk_window_set_title(GTK_WINDOW(WindowMain),"Serial port assistant");
+    gtk_window_set_title(GTK_WINDOW(WindowMain),_("Serial port assistant"));
 	gtk_window_set_position(GTK_WINDOW(WindowMain), GTK_WIN_POS_CENTER);
 	gtk_widget_realize(WindowMain);
     gtk_container_set_border_width(GTK_CONTAINER(WindowMain),10);
@@ -608,7 +615,7 @@ gpointer ReadUart(gpointer data)
     	    if(ThreadEnd == 1)
                 g_thread_exit(NULL);    
             if(select(Serialfd+1,&rd,NULL,NULL,&Timeout) < 0)
-      			MessageReport(("Read Serial"),("Read Serial Fail"),ERROR);
+      			MessageReport(_("Read Serial"),_("Read Serial Fail"),ERROR);
     		else
     		{
                 usleep(200000);
@@ -639,7 +646,7 @@ static void OpenSerial(GtkWidget *Button,gpointer user_data)
     {
         if(Serialfd < 0)
         {
-        	MessageReport(("close Serial"),("close Serial Fail"),ERROR);
+        	MessageReport(_("close Serial"),_("close Serial Fail"),ERROR);
         }	
         else
         {
@@ -653,7 +660,7 @@ static void OpenSerial(GtkWidget *Button,gpointer user_data)
                 close(uc->Filefd);
                 uc->Filefd = -1;
             }        
-        	gtk_button_set_label(GTK_BUTTON(Button),"● Open");
+        	gtk_button_set_label(GTK_BUTTON(Button),_("● Open"));
         	SetWidgetStyle(Button,"black",13);
         }	
     }
@@ -661,13 +668,13 @@ static void OpenSerial(GtkWidget *Button,gpointer user_data)
     {        
         OpenState = InitSerial(uc);
         if(OpenState < 0)
-        	MessageReport(("Open Serial"),("Open Serial Fail"),ERROR);
+        	MessageReport(_("Open Serial"),_("Open Serial Fail"),ERROR);
         else
         {	ThreadEnd = 0;
    			LockSetSerial(uc);    
    			uc->UP.fd =  OpenState;	
    			Serialfd = OpenState;
-        	gtk_button_set_label(GTK_BUTTON(Button),"● Close");
+        	gtk_button_set_label(GTK_BUTTON(Button),_("● Close"));
         	SetWidgetStyle(Button,"red",13);
         	CreateReadUart(uc);
    
@@ -781,6 +788,15 @@ static void SwitchUartStop(GtkWidget *widget,gpointer data)
 	g_free(text);
      
 }   
+gboolean
+SetSerialNotifyEvent (GtkWidget *widget,
+               GdkEvent  *event,
+               gpointer   data)
+{
+	UartControl *uc = (UartControl *) data;
+    gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
+                      _("Serial Setting and open Serial"));
+}        
 void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
 {
 	GtkWidget *Vpaned;
@@ -802,7 +818,7 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
 	Vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
 	gtk_container_add (GTK_CONTAINER (Hbox), Vpaned);
 	
-    Frame = gtk_frame_new ("Serial Setting");
+    Frame = gtk_frame_new (_("Serial Setting"));
     SetWidgetStyle(Frame,"black",12);
 	gtk_frame_set_label_align(GTK_FRAME(Frame),0.5,0.3);
 	gtk_paned_pack1 (GTK_PANED (Vpaned), Frame, FALSE, TRUE);
@@ -811,8 +827,13 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
     gtk_container_add (GTK_CONTAINER (Vpaned), Table);
 	gtk_grid_set_column_homogeneous(GTK_GRID(Table),TRUE);
 
+    gtk_widget_add_events(Vpaned,GDK_ENTER_NOTIFY_MASK);  	
+	g_signal_connect(G_OBJECT(Vpaned), 
+                    "enter-notify-event", 
+                     G_CALLBACK(SetSerialNotifyEvent),
+                     (gpointer) uc);
     LableComPort = gtk_label_new(NULL);
-    SetLableFontType(LableComPort,"black",10,("Serial Number"));
+    SetLableFontType(LableComPort,"black",10,_("Serial Number"));
     gtk_grid_attach(GTK_GRID(Table) , LableComPort , 0 , 0 , 1 , 1);
    	
     SelectPort = SetComPort();
@@ -822,7 +843,7 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
     g_signal_connect(G_OBJECT(SelectPort),"changed",G_CALLBACK(SwitchUartPort),(gpointer) uc);
 
 	LableBaud = gtk_label_new(NULL);
-    SetLableFontType(LableBaud,"black",10,("Baud Rate"));
+    SetLableFontType(LableBaud,"black",10,_("Baud Rate"));
     gtk_grid_attach(GTK_GRID(Table) , LableBaud , 0 , 1 , 1 , 1);
 	
    	SelectBaud = SetBaud();
@@ -832,7 +853,7 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
     g_signal_connect(G_OBJECT(SelectBaud),"changed",G_CALLBACK(SwitchUartBaud),(gpointer) uc);
     
 	LabelParity = gtk_label_new(NULL);
-    SetLableFontType(LabelParity,"black",10,("Parity Bit"));
+    SetLableFontType(LabelParity,"black",10,_("Parity Bit"));
     gtk_grid_attach(GTK_GRID(Table) , LabelParity , 0 , 2 , 1 , 1);
 	
    	SelectParity = SetParity();
@@ -842,7 +863,7 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
 	g_signal_connect(G_OBJECT(SelectParity),"changed",G_CALLBACK(SwitchUartParity),(gpointer) uc);
 
 	LabelData = gtk_label_new(NULL);
-    SetLableFontType(LabelData,"black",10,("Data Bit"));
+    SetLableFontType(LabelData,"black",10,_("Data Bit"));
     gtk_grid_attach(GTK_GRID(Table) , LabelData , 0 , 3 , 1 , 1);
 	
    	SelectData = SetData();
@@ -852,7 +873,7 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
 	g_signal_connect(G_OBJECT(SelectData),"changed",G_CALLBACK(SwitchUartData),(gpointer) uc);
 	
 	LabelStop = gtk_label_new(NULL);
-    SetLableFontType(LabelStop,"black",10,("Stop Bit"));
+    SetLableFontType(LabelStop,"black",10,_("Stop Bit"));
     gtk_grid_attach(GTK_GRID(Table) , LabelStop , 0 , 4 , 1 , 1);
 	
    	SelectStop = SetStop();
@@ -861,7 +882,7 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
     gtk_grid_attach(GTK_GRID(Table) ,SelectStop , 1 , 4 , 1 , 1);
 	g_signal_connect(G_OBJECT(SelectStop),"changed",G_CALLBACK(SwitchUartStop),(gpointer) uc);
    
-    Button = gtk_button_new_with_label ("● open");
+    Button = gtk_button_new_with_label (_("● open"));
     SetWidgetStyle(Button,"black",13);
     gtk_grid_attach(GTK_GRID(Table) , Button , 0 , 5 , 2 , 1);
     g_signal_connect(G_OBJECT(Button), "clicked", G_CALLBACK(OpenSerial), (gpointer) uc);  
@@ -901,22 +922,22 @@ int OpenFileName  (const char * FileName)
 		fd = open(FileName,O_RDWR|O_APPEND|O_CREAT,0777);
 		if(fd < 0)
 		{
-			MessageReport(("Create File"),("Create File Fail"),ERROR);
+			MessageReport(_("Create File"),_("Create File Fail"),ERROR);
 		}	
 	}
 	else if(access(FileName, W_OK) == -1)
 	{
-		MessageReport(("Open File"),("Open File Fail"),ERROR);	
+		MessageReport(_("Open File"),_("Open File Fail"),ERROR);	
 	}	
     else
 	{
-		Ret = MessageReport(("Open File"),("Whether to clear the contents of the file"),QUESTION);	
+		Ret = MessageReport(_("Open File"),_("Whether to clear the contents of the file"),QUESTION);	
 		if(Ret == GTK_RESPONSE_YES)
     	{
         	fd = open(FileName,O_WRONLY|O_APPEND|O_TRUNC);	
         	if(fd < 0)
         	{
-        		MessageReport(("Create File"),("Create File Fail"),ERROR);
+        		MessageReport(_("Create File"),_("Create File Fail"),ERROR);
         	}	
     	}
     	else 
@@ -924,7 +945,7 @@ int OpenFileName  (const char * FileName)
         	fd = open(FileName,O_WRONLY|O_APPEND);	
         	if(fd < 0)
         	{
-        		MessageReport(("Create File"),("Create File Fail"),ERROR);
+        		MessageReport(_("Create File"),_("Create File Fail"),ERROR);
         	}	
     	}
 	}			
@@ -937,14 +958,14 @@ int OpenUseFile (const char *FileName)
     
     if(access(FileName,R_OK) == -1)
 	{
-		MessageReport(("Open File"),("Open File Fail"),ERROR);	
+		MessageReport(_("Open File"),_("Open File Fail"),ERROR);	
         return -1;
 	}
 
     fd = open(FileName,O_RDONLY);	
     if(fd < 0)
     {
-        MessageReport(("Create File"),("Create File Fail"),ERROR);
+        MessageReport(_("Create File"),_("Create File Fail"),ERROR);
     }	
     return fd;    
 }        
@@ -993,19 +1014,19 @@ GtkWidget* CreateFileChoose (UartControl *uc)
 	
     if(uc->ChooseFile == SAVE) 
     {
-        FileChoose = gtk_file_chooser_dialog_new ("Choose Write File", NULL, GTK_FILE_CHOOSER_ACTION_SAVE, NULL);
-        ButtonOk = gtk_button_new_with_label ("save");
+        FileChoose = gtk_file_chooser_dialog_new (_("Choose Write File"), NULL, GTK_FILE_CHOOSER_ACTION_SAVE, NULL);
+        ButtonOk = gtk_button_new_with_label (_("save"));
     }
     else 
     {
     	FileChoose = gtk_file_chooser_dialog_new ("", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, NULL);
-        ButtonOk = gtk_button_new_with_label ("Choose");	
+        ButtonOk = gtk_button_new_with_label (_("Choose"));	
     }
     
     uc->ChooseDialog = FileChoose;
     gtk_window_set_type_hint (GTK_WINDOW (FileChoose), GDK_WINDOW_TYPE_HINT_DIALOG);
 
-    ButtonCancel = gtk_button_new_with_label ("Cancel");
+    ButtonCancel = gtk_button_new_with_label (_("Cancel"));
     gtk_widget_show (ButtonCancel);
     gtk_dialog_add_action_widget (GTK_DIALOG (FileChoose), ButtonCancel, GTK_RESPONSE_CANCEL);
   
@@ -1059,6 +1080,15 @@ void SwitchReceiveHex(GtkWidget *Check,gpointer  data)
 		uc->ShowHex = 0;		
 } 
   
+gboolean
+SetReceiveNotifyEvent (GtkWidget *widget,
+               GdkEvent  *event,
+               gpointer   data)
+{
+	UartControl *uc = (UartControl *) data;
+    gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
+                      _("Receive Setting"));
+}        
 void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
 {
 	GtkWidget *CheckReWriteFile;
@@ -1075,11 +1105,16 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
 	
 	Vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
 	gtk_container_add (GTK_CONTAINER (Hbox), Vpaned);
-	RcvFrame = gtk_frame_new ("Receive Setting");
+	RcvFrame = gtk_frame_new (_("Receive Setting"));
 	gtk_frame_set_label_align(GTK_FRAME(RcvFrame),0.5,0.3);
     SetWidgetStyle(RcvFrame,"black",12);
 	gtk_paned_pack1 (GTK_PANED (Vpaned), RcvFrame, FALSE, TRUE);
 	
+    gtk_widget_add_events(Vpaned,GDK_ENTER_NOTIFY_MASK);  	
+	g_signal_connect(G_OBJECT(Vpaned), 
+                    "enter-notify-event", 
+                     G_CALLBACK(SetReceiveNotifyEvent),
+                     (gpointer) uc);
 	Table = gtk_grid_new();
     gtk_container_add (GTK_CONTAINER (Vpaned), Table);
 	gtk_grid_set_column_homogeneous(GTK_GRID(Table),TRUE);
@@ -1087,24 +1122,24 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
 	LabelSpace = gtk_label_new(" ");
 	gtk_grid_attach(GTK_GRID(Table) ,LabelSpace , 0 , 0 , 2 , 1);
 	
-	CheckReWriteFile = gtk_check_button_new_with_label("Receive Write File");
+	CheckReWriteFile = gtk_check_button_new_with_label(_("Receive Write File"));
 	gtk_grid_attach(GTK_GRID(Table) , CheckReWriteFile , 0 , 1 , 2 , 1);
 	g_signal_connect(G_OBJECT(CheckReWriteFile), "released", G_CALLBACK(SwitchWriteFile), (gpointer)uc);
 	
-	CheckReTime      = gtk_check_button_new_with_label("Display Receive time");
+	CheckReTime      = gtk_check_button_new_with_label(_("Display Receive time"));
 	gtk_grid_attach(GTK_GRID(Table) , CheckReTime , 0 , 2 , 2 , 1);
 	g_signal_connect(G_OBJECT(CheckReTime), "released", G_CALLBACK(SwitchReceiveTime), (gpointer)uc);
 	
-	CheckHex         = gtk_check_button_new_with_label("Display Hex");
+	CheckHex         = gtk_check_button_new_with_label(_("Display Hex"));
 	gtk_grid_attach(GTK_GRID(Table) , CheckHex , 0 , 3 , 2 , 1);
 	g_signal_connect(G_OBJECT(CheckHex), "released", G_CALLBACK(SwitchReceiveHex), (gpointer)uc);
 	
-    LabelSave = gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Save</span>""</a>");
+    LabelSave = gtk_label_new (_("<a href=\"null\">""<span color=\"#0266C8\">Save</span>""</a>"));
     gtk_label_set_use_markup (GTK_LABEL (LabelSave), TRUE); 
     gtk_grid_attach(GTK_GRID(Table) , LabelSave , 0 , 4, 1 , 1);
 	g_signal_connect(G_OBJECT(LabelSave), "activate-link", G_CALLBACK(user_function), (gpointer) uc);     
 
-    LabelClear = gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Clear</span>""</a>");
+    LabelClear = gtk_label_new (_("<a href=\"null\">""<span color=\"#0266C8\">Clear</span>""</a>"));
     gtk_label_set_use_markup (GTK_LABEL (LabelClear), TRUE); 
     gtk_grid_attach(GTK_GRID(Table) , LabelClear , 1 , 4, 1 , 1); 
 	g_signal_connect(G_OBJECT(LabelClear), "activate-link", G_CALLBACK(ClearTerminalData), (gpointer) uc);
@@ -1147,7 +1182,7 @@ void SetAutoSend (UartControl *uc)
     CycleTime = atoi(text);
     if(CycleTime == 0)
     {
-        MessageReport(("Auto Send Data"),("Auto Send data fail,No setting time"),ERROR);
+        MessageReport(_("Auto Send Data"),_("Auto Send data fail,No setting time"),ERROR);
     } 
     else
     {        
@@ -1222,6 +1257,15 @@ void ClearSendData (GtkLabel *label,
 	UartControl *uc = (UartControl *) user_data;
     CleanSendDate(uc);
 }
+gboolean
+SetSendNotifyEvent (GtkWidget *widget,
+               GdkEvent  *event,
+               gpointer   data)
+{
+	UartControl *uc = (UartControl *) data;
+    gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
+                      _("Send Setting"));
+}        
 void SendSet(GtkWidget *Hbox,UartControl *uc)
 {
 	GtkWidget *CheckAutoSend;
@@ -1239,19 +1283,24 @@ void SendSet(GtkWidget *Hbox,UartControl *uc)
 	
     Vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
 	gtk_container_add (GTK_CONTAINER (Hbox), Vpaned);
-	SendFrame = gtk_frame_new ("Send Setting");
+	SendFrame = gtk_frame_new (_("Send Setting"));
 	gtk_frame_set_label_align(GTK_FRAME(SendFrame),0.5,0.3);
     SetWidgetStyle(SendFrame,"black",12);
 	gtk_paned_pack1 (GTK_PANED (Vpaned), SendFrame, FALSE, TRUE);
-	
-	Table = gtk_grid_new();
+    
+    gtk_widget_add_events(Vpaned,GDK_ENTER_NOTIFY_MASK);  	
+	g_signal_connect(G_OBJECT(Vpaned), 
+                    "enter-notify-event", 
+                     G_CALLBACK(SetSendNotifyEvent),
+                     (gpointer) uc);
+    Table = gtk_grid_new();
     gtk_container_add (GTK_CONTAINER (Vpaned), Table);
 	gtk_grid_set_column_homogeneous(GTK_GRID(Table),TRUE);
 	
 	LabelSpace = gtk_label_new(" ");
 	gtk_grid_attach(GTK_GRID(Table) ,LabelSpace , 0 , 0 , 2 , 1);
 
-	CheckUseFile = gtk_check_button_new_with_label("Use File Data");
+	CheckUseFile = gtk_check_button_new_with_label(_("Use File Data"));
 	gtk_grid_attach(GTK_GRID(Table) , CheckUseFile , 0 , 1 , 2 , 1);
     uc->ULC.CheckUseFile = CheckUseFile;
 	g_signal_connect(G_OBJECT(CheckUseFile), 
@@ -1259,14 +1308,14 @@ void SendSet(GtkWidget *Hbox,UartControl *uc)
                     G_CALLBACK(SwitchUseFile), 
                     (gpointer) uc);
 	
-	CheckAutoClean      = gtk_check_button_new_with_label("Auto Empty");
+	CheckAutoClean      = gtk_check_button_new_with_label(_("Auto Empty"));
 	gtk_grid_attach(GTK_GRID(Table) , CheckAutoClean , 0 , 2 ,2 , 1);
 	g_signal_connect(G_OBJECT(CheckAutoClean), 
                     "released", 
                     G_CALLBACK(SwitchAutoClean), 
                     (gpointer) uc);
 	
-	CheckAutoSend        = gtk_check_button_new_with_label("Auto Send Cycle");	
+	CheckAutoSend        = gtk_check_button_new_with_label(_("Auto Send Cycle"));	
     uc->ULC.CheckAutoSend = CheckAutoSend;
     gtk_grid_attach(GTK_GRID(Table) , CheckAutoSend , 0 , 3, 2 , 1);
     g_signal_connect(G_OBJECT(CheckAutoSend), 
@@ -1280,12 +1329,12 @@ void SendSet(GtkWidget *Hbox,UartControl *uc)
     uc->ULC.EntrySendCycle = EntrySendCycle;
     gtk_grid_attach(GTK_GRID(Table) , EntrySendCycle , 0 , 4, 2 , 1);
     
-    LabelSendFile= gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Send File</span>""</a>");
+    LabelSendFile= gtk_label_new (_("<a href=\"null\">""<span color=\"#0266C8\">Send File</span>""</a>"));
     gtk_label_set_use_markup (GTK_LABEL (LabelSendFile), TRUE);
     g_signal_connect(G_OBJECT(LabelSendFile), "activate-link", G_CALLBACK(SendFile), (gpointer) uc); 
     gtk_grid_attach(GTK_GRID(Table) , LabelSendFile , 0 , 5, 1 , 1);
     
-    LabelClear= gtk_label_new ("<a href=\"null\">""<span color=\"#0266C8\">Clear</span>""</a>");
+    LabelClear= gtk_label_new (_("<a href=\"null\">""<span color=\"#0266C8\">Clear</span>""</a>"));
     gtk_label_set_use_markup (GTK_LABEL (LabelClear), TRUE); 
     g_signal_connect(G_OBJECT(LabelClear), "activate-link", G_CALLBACK(ClearSendData), (gpointer) uc);
     gtk_grid_attach(GTK_GRID(Table) , LabelClear , 1 , 5, 1 , 1);
@@ -1310,18 +1359,27 @@ GtkWidget *CreateUartSetFace(GtkWidget *Hbox,UartControl *uc)
 	
 }
 
+gboolean
+ReceiveDataNotifyEvent (GtkWidget *widget,
+               GdkEvent  *event,
+               gpointer   data)
+{
+	UartControl *uc = (UartControl *) data;
+    gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
+                      _("Receive Data"));
+}        
 void CreateReceiveFace(GtkWidget *Vpaned,UartControl *uc)
 {
     GtkWidget *ReveTerminal;
 	GtkWidget *Frame;
 	GtkWidget *Scrolled;
 
-	Frame = gtk_frame_new ("Receive Data From Serial");
+	Frame = gtk_frame_new (_("Receive Data From Serial"));
 	gtk_frame_set_label_align(GTK_FRAME(Frame),0.5,0.3);
 	gtk_paned_pack1 (GTK_PANED (Vpaned),Frame, FALSE, TRUE);
 	gtk_widget_set_size_request (Frame, -1, 430);
-
-	Scrolled = gtk_scrolled_window_new (NULL, NULL);
+	
+    Scrolled = gtk_scrolled_window_new (NULL, NULL);
 	gtk_container_add (GTK_CONTAINER (Frame), Scrolled);
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (Scrolled), 
                                     GTK_POLICY_NEVER, 
@@ -1329,7 +1387,13 @@ void CreateReceiveFace(GtkWidget *Vpaned,UartControl *uc)
 	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (Scrolled), 
                                          GTK_SHADOW_IN);
 
-	ReveTerminal = vte_terminal_new();
+    gtk_widget_add_events(Scrolled,GDK_ENTER_NOTIFY_MASK);  	
+	g_signal_connect(G_OBJECT(Scrolled), 
+                    "enter-notify-event", 
+                     G_CALLBACK(ReceiveDataNotifyEvent),
+                     (gpointer) uc);
+	
+    ReveTerminal = vte_terminal_new();
 	uc->URC.ReveTerminal = ReveTerminal;
     vte_terminal_set_backspace_binding(VTE_TERMINAL(ReveTerminal),
 				                       VTE_ERASE_ASCII_BACKSPACE);
@@ -1354,6 +1418,17 @@ static void insert_link (GtkTextBuffer *buffer,
                                      NULL);
   gtk_text_buffer_insert_with_tags (buffer, iter, text, -1, tag, NULL);
 }
+
+gboolean
+SendDataNotifyEvent (GtkWidget *widget,
+               GdkEvent  *event,
+               gpointer   data)
+{
+	UartControl *uc = (UartControl *) data;
+    gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
+                      _("Send Data"));
+}        
+
 void CreateSendFace(GtkWidget *Vpaned,UartControl *uc)
 {
     GtkWidget *Frame;
@@ -1364,7 +1439,7 @@ void CreateSendFace(GtkWidget *Vpaned,UartControl *uc)
 	GtkTextBuffer *Buffer;
     const char *text = "https://github.com/zhuyaliang/";
 
-	Frame = gtk_frame_new ("Send Data Serial");
+	Frame = gtk_frame_new (_("Send Data Serial"));
 	gtk_frame_set_label_align(GTK_FRAME(Frame),0.5,0.3);
 	gtk_paned_pack2 (GTK_PANED (Vpaned), Frame, FALSE, TRUE);
 	gtk_widget_set_size_request (Frame, -1, 154);
@@ -1376,6 +1451,11 @@ void CreateSendFace(GtkWidget *Vpaned,UartControl *uc)
                                     GTK_POLICY_AUTOMATIC);
 	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (Scrolled),
                                          GTK_SHADOW_IN);
+    gtk_widget_add_events(Scrolled,GDK_ENTER_NOTIFY_MASK);  	
+	g_signal_connect(G_OBJECT(Scrolled), 
+                    "enter-notify-event", 
+                     G_CALLBACK(SendDataNotifyEvent),
+                     (gpointer) uc);
 
 	SendText = gtk_text_view_new ();
 	uc->URC.SendText = SendText;
@@ -1429,7 +1509,7 @@ int WriteUart(const char *WriteData,int WriteLen,UartControl *uc)
     g_mutex_unlock (&Mutex);
     if (Ret < 0)
     {
-        MessageReport(("Send Data"),("Send data fail,Send length is 0"),ERROR);
+        MessageReport(_("Send Data"),_("Send data fail,Send length is 0"),ERROR);
     }
     if(uc->AutoCleanSendData == 1)
     {
@@ -1482,7 +1562,7 @@ void SendData (GtkLabel *Button,gpointer  data)
 
     if (uc->UP.fd < 0) 
     {
-        MessageReport(("Send Data"),("Send data fail, Serial don`t open"),ERROR);
+        MessageReport(_("Send Data"),_("Send data fail, Serial don`t open"),ERROR);
         return;
     }
     if(uc->UseFile == 1 && uc->UseFilefd > 0 )
@@ -1504,10 +1584,28 @@ void SendData (GtkLabel *Button,gpointer  data)
         }
         else
         {
-            MessageReport(("Send Data"),("Send data can not be empty"),ERROR);
+            MessageReport(_("Send Data"),_("Send data can not be empty"),ERROR);
         }        
     }       
 }
+gboolean
+ReceiveCountNotifyEvent (GtkWidget *widget,
+               GdkEvent  *event,
+               gpointer   data)
+{
+	UartControl *uc = (UartControl *) data;
+    gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
+                      _("Receive Count"));
+}        
+gboolean
+SendCountNotifyEvent (GtkWidget *widget,
+               GdkEvent  *event,
+               gpointer   data)
+{
+	UartControl *uc = (UartControl *) data;
+    gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
+                      _("Send Count"));
+}        
 void CreateUartBottom(GtkWidget *Vbox,UartControl *uc)
 {
     GtkWidget *image;
@@ -1525,26 +1623,38 @@ void CreateUartBottom(GtkWidget *Vbox,UartControl *uc)
     image = gtk_image_new_from_icon_name ("audio-speakers",
                                            GTK_ICON_SIZE_MENU);
     gtk_box_pack_start (GTK_BOX (Hbox), image, FALSE, FALSE, 0);
-    LabelState = gtk_label_new("Serial Assistant");
+    LabelState = gtk_label_new(_("Serial Assistant"));
     uc->UDC.LabelState = LabelState;
     gtk_box_pack_start (GTK_BOX (Hbox), LabelState, TRUE, FALSE, 0);
 
     LabelSpace = gtk_label_new("           ");
     gtk_box_pack_start (GTK_BOX (Hbox), LabelSpace, TRUE, TRUE, 0);
 
-    LabelRx = gtk_toggle_button_new_with_label("RX:    0");
+    LabelRx = gtk_toggle_button_new_with_label(_("RX:    0"));
     gtk_box_pack_start (GTK_BOX (Hbox), LabelRx, FALSE, FALSE, 0);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(LabelRx),TRUE);
     SetWidgetStyle(LabelRx,"blue",11);
     uc->UDC.LabelRx = LabelRx;
 
-    LabelTx = gtk_toggle_button_new_with_label("TX:    0");
+    gtk_widget_add_events(LabelRx,GDK_ENTER_NOTIFY_MASK);  	
+	g_signal_connect(LabelRx, 
+                    "enter-notify-event", 
+                     G_CALLBACK(ReceiveCountNotifyEvent),
+                     (gpointer) uc);
+    
+    LabelTx = gtk_toggle_button_new_with_label(_("TX:    0"));
     gtk_box_pack_start (GTK_BOX (Hbox), LabelTx, TRUE, FALSE, 0);
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(LabelTx),TRUE);
     SetWidgetStyle(LabelTx,"blue",11);
     uc->UDC.LabelTx = LabelTx;
     
-    Button = gtk_button_new_with_label ("Send");
+    gtk_widget_add_events(LabelTx,GDK_ENTER_NOTIFY_MASK);  	
+	g_signal_connect(LabelTx, 
+                    "enter-notify-event", 
+                     G_CALLBACK(SendCountNotifyEvent),
+                     (gpointer) uc);
+    
+    Button = gtk_button_new_with_label (_("Send"));
     SetWidgetStyle(Button,"black",11);
     gtk_box_pack_start (GTK_BOX (Hbox), Button, TRUE, FALSE, 0);
     uc->UDC.Button = Button;
@@ -1590,7 +1700,10 @@ int main(int argc, char **argv)
 	GtkWidget *Vbox;
 	UartControl uc;
 	 
-  	gdk_threads_init(); 
+    bindtextdomain (PACKAGE, LOCALEDIR); //关联包名称及其对际化翻译语言所在路径  
+    textdomain (PACKAGE); 
+
+    gdk_threads_init(); 
     g_mutex_init(&Mutex);
     g_cond_init (&Cond);
     gtk_init(&argc, &argv);

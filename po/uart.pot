@@ -1,0 +1,230 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-06-21 18:15+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/main.c:150
+msgid "Message"
+msgstr ""
+
+#: ../src/main.c:187
+msgid "Serial port assistant"
+msgstr ""
+
+#: ../src/main.c:618
+msgid "Read Serial"
+msgstr ""
+
+#: ../src/main.c:618
+msgid "Read Serial Fail"
+msgstr ""
+
+#: ../src/main.c:649
+msgid "close Serial"
+msgstr ""
+
+#: ../src/main.c:649
+msgid "close Serial Fail"
+msgstr ""
+
+#: ../src/main.c:663
+msgid "● Open"
+msgstr ""
+
+#: ../src/main.c:671
+msgid "Open Serial"
+msgstr ""
+
+#: ../src/main.c:671
+msgid "Open Serial Fail"
+msgstr ""
+
+#: ../src/main.c:677
+msgid "● Close"
+msgstr ""
+
+#: ../src/main.c:798
+msgid "Serial Setting and open Serial"
+msgstr ""
+
+#: ../src/main.c:821
+msgid "Serial Setting"
+msgstr ""
+
+#: ../src/main.c:836
+msgid "Serial Number"
+msgstr ""
+
+#: ../src/main.c:846
+msgid "Baud Rate"
+msgstr ""
+
+#: ../src/main.c:856
+msgid "Parity Bit"
+msgstr ""
+
+#: ../src/main.c:866
+msgid "Data Bit"
+msgstr ""
+
+#: ../src/main.c:876
+msgid "Stop Bit"
+msgstr ""
+
+#: ../src/main.c:885
+msgid "● open"
+msgstr ""
+
+#: ../src/main.c:925 ../src/main.c:940 ../src/main.c:948 ../src/main.c:968
+msgid "Create File"
+msgstr ""
+
+#: ../src/main.c:925 ../src/main.c:940 ../src/main.c:948 ../src/main.c:968
+msgid "Create File Fail"
+msgstr ""
+
+#: ../src/main.c:930 ../src/main.c:934 ../src/main.c:961
+msgid "Open File"
+msgstr ""
+
+#: ../src/main.c:930 ../src/main.c:961
+msgid "Open File Fail"
+msgstr ""
+
+#: ../src/main.c:934
+msgid "Whether to clear the contents of the file"
+msgstr ""
+
+#: ../src/main.c:1017
+msgid "Choose Write File"
+msgstr ""
+
+#: ../src/main.c:1018
+msgid "save"
+msgstr ""
+
+#: ../src/main.c:1023
+msgid "Choose"
+msgstr ""
+
+#: ../src/main.c:1029
+msgid "Cancel"
+msgstr ""
+
+#: ../src/main.c:1090 ../src/main.c:1108
+msgid "Receive Setting"
+msgstr ""
+
+#: ../src/main.c:1125
+msgid "Receive Write File"
+msgstr ""
+
+#: ../src/main.c:1129
+msgid "Display Receive time"
+msgstr ""
+
+#: ../src/main.c:1133
+msgid "Display Hex"
+msgstr ""
+
+#: ../src/main.c:1137
+msgid "<a href=\"null\"><span color=\"#0266C8\">Save</span></a>"
+msgstr ""
+
+#: ../src/main.c:1142 ../src/main.c:1337
+msgid "<a href=\"null\"><span color=\"#0266C8\">Clear</span></a>"
+msgstr ""
+
+#: ../src/main.c:1185
+msgid "Auto Send Data"
+msgstr ""
+
+#: ../src/main.c:1185
+msgid "Auto Send data fail,No setting time"
+msgstr ""
+
+#: ../src/main.c:1267 ../src/main.c:1286
+msgid "Send Setting"
+msgstr ""
+
+#: ../src/main.c:1303
+msgid "Use File Data"
+msgstr ""
+
+#: ../src/main.c:1311
+msgid "Auto Empty"
+msgstr ""
+
+#: ../src/main.c:1318
+msgid "Auto Send Cycle"
+msgstr ""
+
+#: ../src/main.c:1332
+msgid "<a href=\"null\"><span color=\"#0266C8\">Send File</span></a>"
+msgstr ""
+
+#: ../src/main.c:1369
+msgid "Receive Data"
+msgstr ""
+
+#: ../src/main.c:1377
+msgid "Receive Data From Serial"
+msgstr ""
+
+#: ../src/main.c:1429 ../src/main.c:1512 ../src/main.c:1565 ../src/main.c:1587
+msgid "Send Data"
+msgstr ""
+
+#: ../src/main.c:1442
+msgid "Send Data Serial"
+msgstr ""
+
+#: ../src/main.c:1512
+msgid "Send data fail,Send length is 0"
+msgstr ""
+
+#: ../src/main.c:1565
+msgid "Send data fail, Serial don`t open"
+msgstr ""
+
+#: ../src/main.c:1587
+msgid "Send data can not be empty"
+msgstr ""
+
+#: ../src/main.c:1598
+msgid "Receive Count"
+msgstr ""
+
+#: ../src/main.c:1608
+msgid "Send Count"
+msgstr ""
+
+#: ../src/main.c:1627
+msgid "Serial Assistant"
+msgstr ""
+
+#: ../src/main.c:1634
+msgid "RX:    0"
+msgstr ""
+
+#: ../src/main.c:1646
+msgid "TX:    0"
+msgstr ""
+
+#: ../src/main.c:1658
+msgid "Send"
+msgstr ""

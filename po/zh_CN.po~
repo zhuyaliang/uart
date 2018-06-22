@@ -1,0 +1,226 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-06-21 18:02+0800\n"
+"PO-Revision-Date: 2018-06-21 18:04+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.7\n"
+
+#: ../src/main.c:150
+msgid "Message"
+msgstr "消息"
+
+#: ../src/main.c:187
+msgid "Serial port assistant"
+msgstr "串口助手"
+
+#: ../src/main.c:618
+msgid "Read Serial"
+msgstr "读串口"
+
+#: ../src/main.c:618
+msgid "Read Serial Fail"
+msgstr "读串口失败"
+
+#: ../src/main.c:649
+msgid "close Serial"
+msgstr "关闭串口"
+
+#: ../src/main.c:649
+msgid "close Serial Fail"
+msgstr "关闭串口失败"
+
+#: ../src/main.c:663
+msgid "● Open"
+msgstr "● 打开"
+
+#: ../src/main.c:671
+msgid "Open Serial"
+msgstr "打开串口"
+
+#: ../src/main.c:671
+msgid "Open Serial Fail"
+msgstr "打开串口失败"
+
+#: ../src/main.c:677
+msgid "● Close"
+msgstr "● 关闭"
+
+#: ../src/main.c:798
+msgid "Serial Setting and open Serial"
+msgstr "串口设置和打开"
+
+#: ../src/main.c:821
+msgid "Serial Setting"
+msgstr "串口设置"
+
+#: ../src/main.c:837
+msgid "Serial Number"
+msgstr "串口号"
+
+#: ../src/main.c:847
+msgid "Baud Rate"
+msgstr "波特率"
+
+#: ../src/main.c:857
+msgid "Parity Bit"
+msgstr "校验位"
+
+#: ../src/main.c:867
+msgid "Data Bit"
+msgstr "数据位"
+
+#: ../src/main.c:877
+msgid "Stop Bit"
+msgstr "停止位"
+
+#: ../src/main.c:886
+msgid "● open"
+msgstr "●  打开"
+
+#: ../src/main.c:926 ../src/main.c:941 ../src/main.c:949 ../src/main.c:969
+msgid "Create File"
+msgstr "创建文件"
+
+#: ../src/main.c:926 ../src/main.c:941 ../src/main.c:949 ../src/main.c:969
+msgid "Create File Fail"
+msgstr "创建文件失败"
+
+#: ../src/main.c:931 ../src/main.c:935 ../src/main.c:962
+msgid "Open File"
+msgstr "打开文件"
+
+#: ../src/main.c:931 ../src/main.c:962
+msgid "Open File Fail"
+msgstr "打开文件失败"
+
+#: ../src/main.c:935
+msgid "Whether to clear the contents of the file"
+msgstr "是否清空文件内容"
+
+#: ../src/main.c:1018
+msgid "Choose Write File"
+msgstr "写入文件"
+
+#: ../src/main.c:1019
+msgid "save"
+msgstr "保存"
+
+#: ../src/main.c:1024
+msgid "Choose"
+msgstr "选择"
+
+#: ../src/main.c:1030
+msgid "Cancel"
+msgstr "取消"
+
+#: ../src/main.c:1091 ../src/main.c:1109
+msgid "Receive Setting"
+msgstr "接收设置"
+
+#: ../src/main.c:1126
+msgid "Receive Write File"
+msgstr "接收转向文件"
+
+#: ../src/main.c:1130
+msgid "Display Receive time"
+msgstr "显示接收时间"
+
+#: ../src/main.c:1134
+msgid "Display Hex"
+msgstr "十六进制显示"
+
+#: ../src/main.c:1138
+msgid "<a href=\"null\"><span color=\"#0266C8\">Save</span></a>"
+msgstr "<a href=\"null\"><span color=\"#0266C8\">保存</span></a>"
+
+#: ../src/main.c:1143 ../src/main.c:1338
+msgid "<a href=\"null\"><span color=\"#0266C8\">Clear</span></a>"
+msgstr "<a href=\"null\"><span color=\"#0266C8\">清空</span></a>"
+
+#: ../src/main.c:1186
+msgid "Auto Send Data"
+msgstr "自动发送数据"
+
+#: ../src/main.c:1186
+msgid "Auto Send data fail,No setting time"
+msgstr "自动发送数据失败，没有设置时间"
+
+#: ../src/main.c:1268 ../src/main.c:1287
+msgid "Send Setting"
+msgstr "发送设置"
+
+#: ../src/main.c:1304
+msgid "Use File Data"
+msgstr "启用文件数据源"
+
+#: ../src/main.c:1312
+msgid "Auto Empty"
+msgstr "发送完自动清空"
+
+#: ../src/main.c:1319
+msgid "Auto Send Cycle"
+msgstr "自动发送周期"
+
+#: ../src/main.c:1333
+msgid "<a href=\"null\"><span color=\"#0266C8\">Send File</span></a>"
+msgstr "<a href=\"null\"><span color=\"#0266C8\">发送文件</span></a>"
+
+#: ../src/main.c:1370
+msgid "Receive Data"
+msgstr "接收数据"
+
+#: ../src/main.c:1378
+msgid "Receive Data From Serial"
+msgstr "串口接收数据"
+
+#: ../src/main.c:1429 ../src/main.c:1512 ../src/main.c:1565 ../src/main.c:1587
+msgid "Send Data"
+msgstr "发送数据"
+
+#: ../src/main.c:1442
+msgid "Send Data Serial"
+msgstr "串口发送数据"
+
+#: ../src/main.c:1512
+msgid "Send data fail,Send length is 0"
+msgstr "发送数据失败，发送内容不能为空"
+
+#: ../src/main.c:1565
+msgid "Send data fail, Serial don`t open"
+msgstr "发送数据失败，串口未打开"
+
+#: ../src/main.c:1587
+msgid "Send data can not be empty"
+msgstr "发送数据不能为空"
+
+#: ../src/main.c:1599
+msgid "State promotion"
+msgstr "状态提示"
+
+#: ../src/main.c:1624
+msgid "Serial Assistant"
+msgstr "串口助手"
+
+#: ../src/main.c:1631
+msgid "RX:    0"
+msgstr "接收         0"
+
+#: ../src/main.c:1637
+msgid "TX:    0"
+msgstr "发送          0"
+
+#: ../src/main.c:1643
+msgid "Send"
+msgstr "发送"
