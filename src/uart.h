@@ -30,8 +30,12 @@ typedef struct
 	GtkWidget *SelectStop;
 	GtkWidget *SelectData;
     GtkWidget *CheckAutoSend;
+    GtkWidget *CheckAutoClean;
     GtkWidget *CheckUseFile;
 	GtkWidget *EntrySendCycle;
+    GtkWidget *CheckReWriteFile;
+    GtkWidget *CheckReTime; 
+    GtkWidget *CheckHex;
 	
 }UartSetFace;
 

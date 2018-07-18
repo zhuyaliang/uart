@@ -4,14 +4,16 @@
 static void SwitchWriteFile(GtkWidget *Check,gpointer  data)
 {
 	UartControl *uc = (UartControl *) data;	
-	if(uc->Redirect == 1)
+	if(gtk_toggle_button_get_active
+      (GTK_TOGGLE_BUTTON(uc->ULC.CheckReWriteFile)) == FALSE)
+    {   
 		uc->Redirect = 0;
-	else
+    }
+    else
 	{	
 		uc->ChooseFile = SAVE; 
 		LoadFile(uc);
-        uc->Redirect = 1;
-	}	
+    }	
 }  
 static void SwitchReceiveTime(GtkWidget *Check,gpointer  data)
 {
@@ -63,7 +65,6 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
 	GtkWidget *CheckReWriteFile;
 	GtkWidget *CheckReTime;
 	GtkWidget *CheckHex;
-	GtkWidget *CheckStop;
 	GtkWidget *Hseparator;
 	GtkWidget *Vpaned;
 	GtkWidget *RcvFrame;
@@ -93,6 +94,7 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
 	gtk_grid_attach(GTK_GRID(Table) ,LabelSpace , 0 , 0 , 2 , 1);
 	
 	CheckReWriteFile = gtk_check_button_new_with_label(_("Receive Write File"));
+    uc->ULC.CheckReWriteFile = CheckReWriteFile;
 	gtk_grid_attach(GTK_GRID(Table) , CheckReWriteFile , 0 , 1 , 2 , 1);
 	g_signal_connect(G_OBJECT(CheckReWriteFile), 
                     "released", 
@@ -100,6 +102,7 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
                     (gpointer)uc);
 	
 	CheckReTime      = gtk_check_button_new_with_label(_("Display Receive time"));
+    uc->ULC.CheckReTime = CheckReTime;
 	gtk_grid_attach(GTK_GRID(Table) , CheckReTime , 0 , 2 , 2 , 1);
 	g_signal_connect(G_OBJECT(CheckReTime), 
                     "released", 
@@ -107,6 +110,7 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
                     (gpointer)uc);
 	
 	CheckHex         = gtk_check_button_new_with_label(_("Display Hex"));
+    uc->ULC.CheckHex = CheckHex;
 	gtk_grid_attach(GTK_GRID(Table) , CheckHex , 0 , 3 , 2 , 1);
 	g_signal_connect(G_OBJECT(CheckHex), 
                     "released",

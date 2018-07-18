@@ -147,7 +147,6 @@ static void UnLockSetSerial(UartControl *uc)
 	gtk_widget_set_sensitive(uc->ULC.SelectParity, TRUE);
 	gtk_widget_set_sensitive(uc->ULC.SelectStop, TRUE);
 	gtk_widget_set_sensitive(uc->ULC.SelectData, TRUE);
-	
 }
 static void ResetSerial(UartControl *uc)
 {
@@ -161,17 +160,46 @@ static void ResetSerial(UartControl *uc)
     {
         close(uc->Filefd);
         uc->Filefd = -1;
+        uc->Redirect = 0;
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckReWriteFile),
+                                      FALSE);
     }
+    if(uc->ShowTime == 1)
+    {
+        uc->ShowTime = 0;
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckReTime),
+                                      FALSE);
+    } 
+    if(uc->ShowHex == 1)
+    {
+       uc->ShowHex = 0;
+       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckHex),
+                                      FALSE);
+
+    }        
     if(uc->UseFile == 1  &&  uc->UseFilefd > 0 )
     {
         if(uc->UseFilefd > 0)
             close(uc->UseFilefd);
         uc->UseFilefd = -1;
+        uc->UseFile = 0;
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckUseFile),
+                                      FALSE);
+
     }
+    if(uc->AutoCleanSendData == 1)
+    {
+        uc->AutoCleanSendData = 0;
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckAutoClean),
+                                      FALSE);
+    }        
     if(uc->AutoSend ==1  && uc->TimeId > 0)
     {        
         g_source_remove(uc->TimeId);  
         uc->TimeId = -1;
+        uc->AutoSend = 0;
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckAutoSend),
+                                      FALSE);
         gtk_widget_set_sensitive(uc->ULC.CheckUseFile, TRUE);
         gtk_widget_set_sensitive(uc->ULC.EntrySendCycle,TRUE);
         gtk_widget_set_sensitive(uc->UDC.Button,TRUE);
@@ -184,7 +212,6 @@ static void OpenSerial(GtkWidget *Button,gpointer user_data)
 	UartControl *uc = (UartControl *) user_data;
 
     SwitchState = GetSwitchState(gtk_button_get_label(GTK_BUTTON(Button)));
-
     if(SwitchState == CLOSE)
     {
         if(Serialfd < 0)
@@ -203,7 +230,10 @@ static void OpenSerial(GtkWidget *Button,gpointer user_data)
     {
         OpenState = InitSerial(uc);
         if(OpenState < 0)
+        {   
+            gnSwitchSatue = 1;      
         	MessageReport(_("Open Serial"),_("Open Serial Fail"),ERROR);
+        }
         else
         {	ThreadEnd = 0;
    			LockSetSerial(uc);

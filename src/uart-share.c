@@ -152,14 +152,21 @@ static void ChooseFileWrite (GtkButton *button, gpointer data)
            	if(fd > 0 )
            	{
            		uc->Filefd = fd;
+                uc->Redirect = 1;
            	}
+            else
+                gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckReWriteFile),FALSE);
+                        
             break;
         case CHOOSE:
             fd = OpenUseFile(FileName);
             if(fd > 0)
             {
                 uc->UseFilefd = fd;
+                uc->UseFile = 1;
             }
+            else
+                gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckUseFile),FALSE);
             break;
         default:
             break;
@@ -170,6 +177,10 @@ static void ChooseFileWrite (GtkButton *button, gpointer data)
 static void  CloseChooseFileWrite(GtkButton *button, gpointer data)
 {
 	UartControl *uc = (UartControl *)data;
+    if(uc->ChooseFile == SAVE)
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckReWriteFile),FALSE);
+    else
+       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckUseFile),FALSE);
     gtk_widget_destroy(GTK_WIDGET(uc->ChooseDialog));
 }
 
@@ -184,7 +195,7 @@ static GtkWidget* CreateFileChoose (UartControl *uc)
     if(uc->ChooseFile == SAVE) 
     {
         FileChoose = gtk_file_chooser_dialog_new (_("Choose Write File"), 
-                                                    NULL, 
+                                                  GTK_WINDOW(uc->MainWindow), 
                                                     GTK_FILE_CHOOSER_ACTION_SAVE, 
                                                     NULL);
 
@@ -193,7 +204,7 @@ static GtkWidget* CreateFileChoose (UartControl *uc)
     else 
     {
     	FileChoose = gtk_file_chooser_dialog_new ("", 
-                                                  NULL, 
+                                                  GTK_WINDOW(uc->MainWindow), 
                                                   GTK_FILE_CHOOSER_ACTION_OPEN, 
                                                   NULL);
 
@@ -205,16 +216,20 @@ static GtkWidget* CreateFileChoose (UartControl *uc)
 
     ButtonCancel = gtk_button_new_with_label (_("Cancel"));
     gtk_widget_show (ButtonCancel);
-    gtk_dialog_add_action_widget (GTK_DIALOG (FileChoose), ButtonCancel, GTK_RESPONSE_CANCEL);
+    gtk_dialog_add_action_widget (GTK_DIALOG (FileChoose), 
+                                  ButtonCancel, 
+                                  GTK_RESPONSE_CANCEL);
   
     gtk_widget_show (ButtonOk);
-    gtk_dialog_add_action_widget (GTK_DIALOG (FileChoose), ButtonOk, GTK_RESPONSE_OK);
+    gtk_dialog_add_action_widget (GTK_DIALOG (FileChoose), 
+                                  ButtonOk, 
+                                  GTK_RESPONSE_OK);
    
     g_signal_connect ((gpointer) ButtonCancel, "clicked",
             G_CALLBACK (CloseChooseFileWrite),uc);
     g_signal_connect ((gpointer) ButtonOk, "clicked",
             G_CALLBACK (ChooseFileWrite),uc);
-
+    gtk_widget_set_can_default(ButtonOk,TRUE);
     return FileChoose;
 }
 

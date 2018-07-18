@@ -14,7 +14,6 @@ static gboolean AutoWriteUart (gpointer data)
     gtk_text_buffer_get_bounds (GTK_TEXT_BUFFER(Buffer), &Start, &End);
     text = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(Buffer), &Start, &End, FALSE);
     SendLen = strlen(text);
-    printf("text = %d\r\n",SendLen);
     if(SendLen > 0)
     {
         SendLen += 1;     
@@ -49,6 +48,14 @@ static void SwitchAutoSend(GtkWidget *Check,gpointer  data)
 {
 	UartControl *uc = (UartControl *) data;
 
+    if(uc->UP.fd < 0)
+    {
+        MessageReport(_("Auto Send Data"),
+                      _("Auto Send data fail,No open serial"),ERROR);
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(Check),
+                                      FALSE);
+        return;
+    }        
     if(uc->AutoSend == 0)
     {
         uc->AutoSend = 1;
@@ -80,11 +87,11 @@ static void SwitchAutoClean(GtkWidget *Check,gpointer  data)
 static void SwitchUseFile(GtkWidget *Check,gpointer  data)
 {
 	UartControl *uc = (UartControl *) data;
-    if(uc->UseFile == 0)
+    if(gtk_toggle_button_get_active
+      (GTK_TOGGLE_BUTTON(uc->ULC.CheckUseFile)) == TRUE)
     {
         uc->ChooseFile = CHOOSE; 
 		LoadFile(uc);
-        uc->UseFile = 1;
         gtk_widget_set_sensitive(uc->ULC.CheckAutoSend, FALSE);
     }        
     else
@@ -161,7 +168,8 @@ void SendSet(GtkWidget *Hbox,UartControl *uc)
                     (gpointer) uc);
 
 	CheckAutoClean      = gtk_check_button_new_with_label(_("Auto Empty"));
-	gtk_grid_attach(GTK_GRID(Table) , CheckAutoClean , 0 , 2 ,2 , 1);
+    uc->ULC.CheckAutoClean = CheckAutoClean;
+    gtk_grid_attach(GTK_GRID(Table) , CheckAutoClean , 0 , 2 ,2 , 1);
 	g_signal_connect(G_OBJECT(CheckAutoClean),
                     "released",
                     G_CALLBACK(SwitchAutoClean),
