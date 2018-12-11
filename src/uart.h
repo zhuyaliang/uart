@@ -18,8 +18,8 @@
 #include <sys/stat.h>
 #include <gdk/gdkkeysyms.h>
 
-#define _(STRING)  gettext(STRING) //用别名_(STRING)替换gettext    (STRONG)
-#define PACKAGE    "uart" // 定义软件包的名字为hello
+#define _(STRING)  gettext(STRING) 
+#define PACKAGE    "uart" 
 #define LOCALEDIR  "/usr/share/locale/" 
 
 typedef struct 
@@ -56,12 +56,12 @@ typedef struct
 
 typedef struct
 {
-	char UartPort[30];
-	int  UartBaud;
-	int  UartParity;
-	int  UartData;
-	int  UartStop;		
-	int  fd;
+	char *UartPort;
+	int   UartBaud;
+	int   UartParity;
+	int   UartData;
+	int   UartStop;		
+	int   fd;
 	
 }UartParamete;
 

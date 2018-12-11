@@ -2,9 +2,7 @@
 
 void SetDefaultSerial(UartControl *uc)
 {
-	const char *text = "/dev/ttyS0";
-	memset(uc->UP.UartPort,'\0',30);
-	memcpy(uc->UP.UartPort,text,strlen(text));
+	uc->UP.UartPort = g_strdup("/dev/ttyS0");
 	uc->UP.UartBaud    = 9600;
 	uc->UP.UartParity  = 0;
 	uc->UP.UartStop    = 1;
