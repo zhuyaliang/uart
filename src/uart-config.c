@@ -97,7 +97,6 @@ static void SwitchUartData(GtkWidget *widget,gpointer data)
     	model = gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
         gtk_tree_model_get( model, &iter, 0, &text, -1 );
     }
-    printf("text = %s\r\n",text);
     uc->UP.UartData = atoi(text);
 	g_free(text);
      
@@ -299,14 +298,21 @@ static GSList *GetDevice (void)
 static gboolean CheckDeviceIsUpdate (GSList *NewList,
                                      GSList *OldList)
 {
-    GSList *n, *n;
+    GSList *new, *old;
     int i = 0;
     if(NewList == NULL || OldList == NULL)
         return TRUE;
     if(g_slist_length(NewList) != g_slist_length(OldList))
         return TRUE;
     
-    for (l = NewList; l; l = l->next,i++)
+    for (new = NewList,old = OldList;
+		 new; 
+		 new = new->next,old = old->next,i++)
+	{
+		if(g_strcmp0(new->data,old->data) != 0)
+			return TRUE;	
+	}		
+	return FALSE;
 }    
 static gboolean UpdateDevice (gpointer data)
 {
@@ -316,20 +322,23 @@ static gboolean UpdateDevice (gpointer data)
     int i = 0;
 
     CurrentList = GetDevice();
-    if(CheckDeviceIsUpdate(CurrentList,uc->Baudlist) == TRUE)
+    if(CheckDeviceIsUpdate(CurrentList,uc->Portlist) == TRUE)
     {
         SelectChange = 1; 
-        gtk_list_store_clear(uc->BaudStore);
-        uc->Baudlist = g_slist_copy(CurrentList);
-        for (l = uc->Baudlist; l; l = l->next,i++)
+        gtk_list_store_clear(uc->PortStore);
+        uc->Portlist = g_slist_copy(CurrentList);
+        for (l = uc->Portlist; l; l = l->next,i++)
         {
-            gtk_list_store_append(uc->BaudStore,&Iter);
-            gtk_list_store_set(uc->BaudStore,&Iter,0,l->data,-1);
+            gtk_list_store_append(uc->PortStore,&Iter);
+            gtk_list_store_set(uc->PortStore,&Iter,0,l->data,-1);
             l->data = g_strdup (l->data);
         }
-        SetComboBox(uc->BaudStore);
+        SetComboBox(uc->PortStore);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(uc->ULC.SelectPort),0);
         SelectChange = 0;
+
     }
+	g_slist_free(CurrentList);
     return TRUE;
 }    
 static GtkWidget *SetComPort(UartControl *uc)
@@ -338,24 +347,24 @@ static GtkWidget *SetComPort(UartControl *uc)
     GSList *l;
     int i = 0;
     
-    uc->Baudlist =  GetDevice();
-    if(uc->Baudlist == NULL)
+    uc->Portlist =  GetDevice();
+    if(uc->Portlist == NULL)
     {
-        MessageReport(_("Get Dwivce"),
+        MessageReport(_("Get Deivce"),
                       _("/dev/ No available devices were found"),
                       ERROR);
         exit(-1);
     }    
 
-    uc->BaudStore = gtk_list_store_new(1,G_TYPE_STRING);
+    uc->PortStore = gtk_list_store_new(1,G_TYPE_STRING);
 
-    for (l = uc->Baudlist; l; l = l->next,i++)
+    for (l = uc->Portlist; l; l = l->next,i++)
     {
-        gtk_list_store_append(uc->BaudStore,&Iter);
-        gtk_list_store_set(uc->BaudStore,&Iter,0,l->data,-1);
+        gtk_list_store_append(uc->PortStore,&Iter);
+        gtk_list_store_set(uc->PortStore,&Iter,0,l->data,-1);
     }
     g_timeout_add(500,(GSourceFunc)UpdateDevice,uc);
-    return SetComboBox(uc->BaudStore);
+    return SetComboBox(uc->PortStore);
 }
 static GtkWidget *SetBaud(void)
 {
@@ -479,9 +488,7 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
     SetLableFontType(LableComPort,"black",10,_("Serial Number"));
     gtk_grid_attach(GTK_GRID(Table) , LableComPort , 0 , 0 , 1 , 1);
 
-
     SelectPort = SetComPort(uc);
-
     gtk_combo_box_set_active(GTK_COMBO_BOX(SelectPort),0);
     uc->ULC.SelectPort = SelectPort;
     gtk_grid_attach(GTK_GRID(Table) ,SelectPort , 1 , 0 , 1 , 1);

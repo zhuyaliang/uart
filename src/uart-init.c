@@ -19,7 +19,7 @@ void SetDefaultSerial(UartControl *uc)
     uc->TimeId         = -1;
     uc->SendCount      = 0;
     uc->ReceCount      = 0;
-    uc->Baudlist       = NULL;
+    uc->Portlist       = NULL;
 }
 
 int InitSerial(UartControl *uc)
