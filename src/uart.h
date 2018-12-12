@@ -72,6 +72,8 @@ typedef struct
 	UartTextFace     URC;
 	UartBottomFace   UDC;
 	UartParamete     UP;
+    GSList          *Baudlist;
+    GtkListStore    *BaudStore;
 	int              Filefd;
 	int              ShowHex;
 	int              Redirect;

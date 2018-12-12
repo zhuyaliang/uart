@@ -50,7 +50,7 @@ static GtkWidget *CreateMainWindow(void)
 	return WindowMain;
 }	
 
-static GtkWidget *CreateUartSetFace(GtkWidget *Hbox,UartControl *uc)
+static  void CreateUartSetFace(GtkWidget *Hbox,UartControl *uc)
 {
 	GtkWidget *Vbox;
 	

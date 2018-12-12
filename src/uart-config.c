@@ -1,8 +1,10 @@
+#include "config.h"
 #include "uart-config.h"
 #include "uart-share.h"
 #include "uart-init.h"
 #include "uart-read.h"
 
+static int SelectChange;
 static gboolean
 SetSerialNotifyEvent (GtkWidget *widget,
                GdkEvent  *event,
@@ -11,26 +13,28 @@ SetSerialNotifyEvent (GtkWidget *widget,
 	UartControl *uc = (UartControl *) data;
     gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),\
                       _("Serial Setting and open Serial"));
+
+    return TRUE;
 } 
 static void SwitchUartPort(GtkWidget *widget,gpointer data)
 {
+    UartControl *uc = (UartControl *) data;
 	char *text;
     GtkTreeIter   iter;
     GtkTreeModel *model;
     char Path[30] = { 0 };
-    
-    UartControl *uc = (UartControl *) data;
-
-	if( gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), &iter ) )
-    {
-    	model = gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
-        gtk_tree_model_get( model, &iter, 0, &text, -1 );
+    if(SelectChange == 0)
+    {    
+	    if( gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), &iter ) )
+        {
+    	    model = gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
+            gtk_tree_model_get( model, &iter, 0, &text, -1 );
+        }
+   	    memset(uc->UP.UartPort,'\0',strlen(uc->UP.UartPort));
+	    sprintf(Path,"/dev/%s",text);
+        memcpy(uc->UP.UartPort,Path,strlen(Path));
+	    g_free(text);
     }
-   	memset(uc->UP.UartPort,'\0',strlen(uc->UP.UartPort));
-	sprintf(Path,"/dev/%s",text);
-    memcpy(uc->UP.UartPort,Path,strlen(Path));
-	g_free(text);
-     
 } 
     
 static void SwitchUartBaud(GtkWidget *widget,gpointer data)
@@ -257,29 +261,101 @@ static GtkWidget *SetComboBox(GtkListStore  *Store)
     g_object_unref(G_OBJECT(Store));
     Renderer = gtk_cell_renderer_text_new();
     gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(ComboUser),Renderer,TRUE);
-    gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(ComboUser),Renderer,"text",0,NULL);
+    gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(ComboUser),
+                                   Renderer,
+                                   "text",
+                                    0,NULL);
     gtk_combo_box_set_active(GTK_COMBO_BOX(ComboUser),1);
 
     return ComboUser;
 	
 }
-static GtkWidget *SetComPort(void)
+
+static GSList *GetDevice (void)
 {
-    GtkListStore    *Store;
-    GtkTreeIter     Iter;
+    DIR *dp;
+    struct stat statbuf;
+    struct dirent *entry;
+    GSList *list = NULL;
+ 
+    if((dp = opendir(DEVICEFILE)) == NULL)
+         return NULL;
+    while((entry = readdir(dp)) != NULL)
+    {
+        lstat(entry->d_name,&statbuf);
+        if(S_ISDIR(statbuf.st_mode))
+        {
+            if(strcmp(".",entry->d_name) == 0 ||strcmp("..",entry->d_name) == 0)
+            continue;
+        }
+        if(g_strrstr(entry->d_name,"ttyS") != NULL ||
+           g_strrstr(entry->d_name,"ttyUSB") != NULL)
+        {
+            list = g_slist_append(list,entry->d_name);
+        }    
+    }
+    return list;
+}   
+static gboolean CheckDeviceIsUpdate (GSList *NewList,
+                                     GSList *OldList)
+{
+    GSList *n, *n;
+    int i = 0;
+    if(NewList == NULL || OldList == NULL)
+        return TRUE;
+    if(g_slist_length(NewList) != g_slist_length(OldList))
+        return TRUE;
     
+    for (l = NewList; l; l = l->next,i++)
+}    
+static gboolean UpdateDevice (gpointer data)
+{
+    UartControl *uc = (UartControl *)data;
+    GtkTreeIter     Iter;
+    GSList *CurrentList, *l;
+    int i = 0;
 
-    Store = gtk_list_store_new(1,G_TYPE_STRING);
-    gtk_list_store_append(Store,&Iter);
-    gtk_list_store_set(Store,&Iter,0,"ttyS0",-1);
-    gtk_list_store_append(Store,&Iter);
-    gtk_list_store_set(Store,&Iter,0,"ttyUSB0",-1);
-    gtk_list_store_append(Store,&Iter);
-    gtk_list_store_set(Store,&Iter,0,"ttyS2",-1);
-    gtk_list_store_append(Store,&Iter);
-    gtk_list_store_set(Store,&Iter,0,"ttyS3",-1);
+    CurrentList = GetDevice();
+    if(CheckDeviceIsUpdate(CurrentList,uc->Baudlist) == TRUE)
+    {
+        SelectChange = 1; 
+        gtk_list_store_clear(uc->BaudStore);
+        uc->Baudlist = g_slist_copy(CurrentList);
+        for (l = uc->Baudlist; l; l = l->next,i++)
+        {
+            gtk_list_store_append(uc->BaudStore,&Iter);
+            gtk_list_store_set(uc->BaudStore,&Iter,0,l->data,-1);
+            l->data = g_strdup (l->data);
+        }
+        SetComboBox(uc->BaudStore);
+        SelectChange = 0;
+    }
+    return TRUE;
+}    
+static GtkWidget *SetComPort(UartControl *uc)
+{
+    GtkTreeIter     Iter;
+    GSList *l;
+    int i = 0;
+    
+    uc->Baudlist =  GetDevice();
+    if(uc->Baudlist == NULL)
+    {
+        MessageReport(_("Get Dwivce"),
+                      _("/dev/ No available devices were found"),
+                      ERROR);
+        exit(-1);
+    }    
 
-    return SetComboBox(Store);
+    uc->BaudStore = gtk_list_store_new(1,G_TYPE_STRING);
+
+    for (l = uc->Baudlist; l; l = l->next,i++)
+    {
+        gtk_list_store_append(uc->BaudStore,&Iter);
+        gtk_list_store_set(uc->BaudStore,&Iter,0,l->data,-1);
+    }
+    g_timeout_add(500,(GSourceFunc)UpdateDevice,uc);
+    return SetComboBox(uc->BaudStore);
 }
 static GtkWidget *SetBaud(void)
 {
@@ -332,7 +408,6 @@ static GtkWidget *SetStop(void)
 {
     GtkListStore    *Store;
     GtkTreeIter     Iter;
-   
 
     Store = gtk_list_store_new(1,G_TYPE_STRING);
     gtk_list_store_append(Store,&Iter);
@@ -379,6 +454,7 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
 	GtkWidget *LabelData;
 	GtkWidget *SelectData;
 	GtkWidget *Hseparator;
+    GtkWidget *LabelState;
 	GtkWidget *Button;
 
 	Vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
@@ -403,10 +479,13 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
     SetLableFontType(LableComPort,"black",10,_("Serial Number"));
     gtk_grid_attach(GTK_GRID(Table) , LableComPort , 0 , 0 , 1 , 1);
 
-    SelectPort = SetComPort();
+
+    SelectPort = SetComPort(uc);
+
     gtk_combo_box_set_active(GTK_COMBO_BOX(SelectPort),0);
     uc->ULC.SelectPort = SelectPort;
     gtk_grid_attach(GTK_GRID(Table) ,SelectPort , 1 , 0 , 1 , 1);
+
     g_signal_connect(G_OBJECT(SelectPort),
                     "changed",
                     G_CALLBACK(SwitchUartPort),
@@ -464,9 +543,15 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
                     G_CALLBACK(SwitchUartStop),
                     (gpointer) uc);
 
-    Button = gtk_button_new_with_label (_("● open"));
+    LabelState = gtk_label_new(NULL);
+    SetLableFontType(LabelState,"black",20,"● ");
+    gtk_grid_attach(GTK_GRID(Table) , LabelState , 0 , 5 , 1 , 1);
+
+    Button = gtk_button_new_with_label (_("Open"));
     SetWidgetStyle(Button,"black",13);
-    gtk_grid_attach(GTK_GRID(Table) , Button , 0 , 5 , 2 , 1);
+    gtk_widget_set_vexpand(Button,TRUE);
+    gtk_widget_set_valign (Button,GTK_ALIGN_END);
+    gtk_grid_attach(GTK_GRID(Table) , Button , 1 , 5 , 1 , 1);
     g_signal_connect(G_OBJECT(Button), 
                     "clicked", 
                     G_CALLBACK(OpenSerial), 

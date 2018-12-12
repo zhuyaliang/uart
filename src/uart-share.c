@@ -2,7 +2,7 @@
 
 int MessageReport(const char *Title,const char *Msg,int nType)
 {
-    GtkWidget *dialog;
+    GtkWidget *dialog =NULL;
     int nRet;
     switch(nType)
     {
@@ -12,7 +12,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_ERROR,
                                             GTK_BUTTONS_OK,
-                                            Title);
+                                            "%s",Title);
             break;
         }
         case WARING:
@@ -21,7 +21,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_WARNING,
                                             GTK_BUTTONS_OK,
-                                            Title);
+                                            "%s",Title);
             break;
         }
         case INFOR:
@@ -30,7 +30,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_INFO,
                                             GTK_BUTTONS_OK,
-                                            Title);
+                                            "%s",Title);
             break;
         }
         case QUESTION:
@@ -39,7 +39,7 @@ int MessageReport(const char *Title,const char *Msg,int nType)
                                             GTK_DIALOG_DESTROY_WITH_PARENT,
                                             GTK_MESSAGE_QUESTION,
                                             GTK_BUTTONS_YES_NO,
-                                            Title);
+                                            "%s",Title);
             break;
         }
         default :
@@ -186,8 +186,6 @@ static void  CloseChooseFileWrite(GtkButton *button, gpointer data)
 
 static GtkWidget* CreateFileChoose (UartControl *uc)
 {
-    GtkWidget *dialog_vbox;
-    GtkWidget *dialog_action_area;
     GtkWidget *ButtonCancel;
     GtkWidget *ButtonOk;
 	GtkWidget *FileChoose;
@@ -195,9 +193,9 @@ static GtkWidget* CreateFileChoose (UartControl *uc)
     if(uc->ChooseFile == SAVE) 
     {
         FileChoose = gtk_file_chooser_dialog_new (_("Choose Write File"), 
-                                                  GTK_WINDOW(uc->MainWindow), 
-                                                    GTK_FILE_CHOOSER_ACTION_SAVE, 
-                                                    NULL);
+                                                     GTK_WINDOW(uc->MainWindow), 
+                                                     GTK_FILE_CHOOSER_ACTION_SAVE, 
+                                                     NULL,NULL);
 
         ButtonOk = gtk_button_new_with_label (_("save"));
     }
@@ -206,7 +204,7 @@ static GtkWidget* CreateFileChoose (UartControl *uc)
     	FileChoose = gtk_file_chooser_dialog_new ("", 
                                                   GTK_WINDOW(uc->MainWindow), 
                                                   GTK_FILE_CHOOSER_ACTION_OPEN, 
-                                                  NULL);
+                                                  NULL,NULL);
 
         ButtonOk = gtk_button_new_with_label (_("Choose"));	
     }
@@ -236,11 +234,12 @@ static GtkWidget* CreateFileChoose (UartControl *uc)
 
 int LoadFile (UartControl *uc)
 {
-	
     GtkWidget *WindowFileChoose;
      
     WindowFileChoose = (GtkWidget *)CreateFileChoose(uc);
     gtk_widget_show (WindowFileChoose);
+
+    return 0;
 }
 void CleanSendDate(UartControl *uc)
 {

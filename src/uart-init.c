@@ -19,6 +19,7 @@ void SetDefaultSerial(UartControl *uc)
     uc->TimeId         = -1;
     uc->SendCount      = 0;
     uc->ReceCount      = 0;
+    uc->Baudlist       = NULL;
 }
 
 int InitSerial(UartControl *uc)
@@ -93,6 +94,7 @@ int InitSerial(UartControl *uc)
 			break;
 		case 4:
 			termios_new.c_cflag |= PARENB | CS8 | CMSPAR;
+            break;
 		default:			//no parity check
 			termios_new.c_cflag &= ~PARENB;
 			break;
