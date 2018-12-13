@@ -7,6 +7,7 @@ ReceiveDataNotifyEvent (GtkWidget *widget,
 	UartControl *uc = (UartControl *) data;
     gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
                       _("Receive Data"));
+    return TRUE;
 }
 void CreateReceiveFace(GtkWidget *Vpaned,UartControl *uc)
 {
@@ -36,15 +37,14 @@ void CreateReceiveFace(GtkWidget *Vpaned,UartControl *uc)
     ReveTerminal = vte_terminal_new();
 	uc->URC.ReveTerminal = ReveTerminal;
     vte_terminal_set_backspace_binding(VTE_TERMINAL(ReveTerminal),
-				                       VTE_ERASE_ASCII_BACKSPACE);
-    vte_terminal_set_input_enabled(VTE_TERMINAL(ReveTerminal),1);
+			                       VTE_ERASE_ASCII_BACKSPACE);
+    vte_terminal_set_input_enabled(VTE_TERMINAL(ReveTerminal),TRUE);
     vte_terminal_set_scroll_on_output(VTE_TERMINAL(ReveTerminal),0);
     vte_terminal_set_mouse_autohide(VTE_TERMINAL(ReveTerminal),1);
-
     vte_terminal_set_allow_bold(VTE_TERMINAL(ReveTerminal),TRUE);
+
+    vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(ReveTerminal),TRUE);
     gtk_container_add (GTK_CONTAINER (Scrolled), ReveTerminal);
-
-
 }
 static void insert_link (GtkTextBuffer *buffer,
                          GtkTextIter   *iter,
@@ -67,6 +67,7 @@ SendDataNotifyEvent (GtkWidget *widget,
 	UartControl *uc = (UartControl *) data;
     gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
                       _("Send Data"));
+    return TRUE;
 }
 
 void CreateSendFace(GtkWidget *Vpaned,UartControl *uc)

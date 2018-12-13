@@ -6,14 +6,13 @@ static gpointer SendUseFileUart(gpointer data)
 {
     UartControl *uc = (UartControl *) data;
     int WriteLen;
-    int Ret;
     char WriteData[100] = { 0 };
 
     gtk_widget_set_sensitive(uc->UDC.Button, FALSE);
 
     while(1)
     {
-        if(uc->UseFile == 0  ||  uc->UseFilefd < 0 )
+        if(uc->UseFilefd < 0 )
         {
             gtk_widget_set_sensitive(uc->UDC.Button,TRUE);
             if(uc->UseFilefd > 0)        
@@ -37,11 +36,12 @@ static gpointer SendUseFileUart(gpointer data)
         }
     }
     g_thread_exit(NULL);
+    return NULL;
 }
 static void SendData (GtkLabel *Button,gpointer  data)
 {
 	UartControl *uc = (UartControl *) data;
-    int SendLen = 0, ret = 0;
+    int SendLen = 0;
     GtkTextIter Start,End;
     GtkTextBuffer *Buffer = NULL;
     gchar *text = NULL;
@@ -51,10 +51,9 @@ static void SendData (GtkLabel *Button,gpointer  data)
         MessageReport(_("Send Data"),_("Send data fail, Serial don`t open"),ERROR);
         return;
     }
-    if(uc->UseFile == 1 && uc->UseFilefd > 0 )
+    if(uc->UseFilefd > 0 )
     {
         g_thread_new("SendUart",(GThreadFunc)SendUseFileUart,(gpointer)uc);
-
     }
     else
     {
@@ -66,6 +65,7 @@ static void SendData (GtkLabel *Button,gpointer  data)
         {
             SendLen += 1;
             text[strlen(text)] = '\n';
+            printf("text = %s\r\n",text);
             WriteUart(text,SendLen,uc);
         }
         else
@@ -82,6 +82,7 @@ ReceiveCountNotifyEvent (GtkWidget *widget,
 	UartControl *uc = (UartControl *) data;
     gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
                       _("Receive Count"));
+    return TRUE;
 }
 static gboolean
 SendCountNotifyEvent (GtkWidget *widget,
@@ -90,7 +91,8 @@ SendCountNotifyEvent (GtkWidget *widget,
 {
 	UartControl *uc = (UartControl *) data;
     gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
-                      _("Send Count"));
+                      _(" Send Count    "));
+    return TRUE;
 }
 void CreateUartBottom(GtkWidget *Vbox,UartControl *uc)
 {
@@ -98,7 +100,6 @@ void CreateUartBottom(GtkWidget *Vbox,UartControl *uc)
     GtkWidget *LabelState;
     GtkWidget *LabelRx;
     GtkWidget *LabelTx;
-    GtkWidget *LabelSpace;
 
     GtkWidget *Button;
     GtkWidget *Hbox;
@@ -108,17 +109,13 @@ void CreateUartBottom(GtkWidget *Vbox,UartControl *uc)
 
     image = gtk_image_new_from_icon_name ("audio-speakers",
                                            GTK_ICON_SIZE_MENU);
-    gtk_box_pack_start (GTK_BOX (Hbox), image, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (Hbox), image, TRUE, TRUE, 0);
     LabelState = gtk_label_new(_("Serial Assistant"));
     uc->UDC.LabelState = LabelState;
-    gtk_box_pack_start (GTK_BOX (Hbox), LabelState, TRUE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (Hbox), LabelState, TRUE, TRUE, 0);
 
-    LabelSpace = gtk_label_new("           ");
-    gtk_box_pack_start (GTK_BOX (Hbox), LabelSpace, TRUE, TRUE, 0);
-
-    LabelRx = gtk_toggle_button_new_with_label(_("RX:    0"));
+    LabelRx = gtk_label_new(_("RX:    0"));
     gtk_box_pack_start (GTK_BOX (Hbox), LabelRx, FALSE, FALSE, 0);
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(LabelRx),TRUE);
     SetWidgetStyle(LabelRx,"blue",11);
     uc->UDC.LabelRx = LabelRx;
 
@@ -128,9 +125,8 @@ void CreateUartBottom(GtkWidget *Vbox,UartControl *uc)
                      G_CALLBACK(ReceiveCountNotifyEvent),
                      (gpointer) uc);
 
-    LabelTx = gtk_toggle_button_new_with_label(_("TX:    0"));
+    LabelTx = gtk_label_new(_("TX:    0"));
     gtk_box_pack_start (GTK_BOX (Hbox), LabelTx, TRUE, FALSE, 0);
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(LabelTx),TRUE);
     SetWidgetStyle(LabelTx,"blue",11);
     uc->UDC.LabelTx = LabelTx;
 

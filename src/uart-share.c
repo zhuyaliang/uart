@@ -93,7 +93,7 @@ static int OpenFileName  (const char * FileName)
 	}
 	else if(access(FileName, W_OK) == -1)
 	{
-		MessageReport(_("Open File"),_("Open File Fail"),ERROR);
+		MessageReport(_("Open File"),_("Open File Fail No write permission"),ERROR);
 	}
     else
 	{
@@ -144,7 +144,7 @@ static void ChooseFileWrite (GtkButton *button, gpointer data)
     UartControl *uc = (UartControl *)data;
 
     FileName = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (uc->ChooseDialog));
-
+    
     switch (uc->ChooseFile )
     {
         case SAVE:
@@ -152,18 +152,17 @@ static void ChooseFileWrite (GtkButton *button, gpointer data)
            	if(fd > 0 )
            	{
            		uc->Filefd = fd;
-                uc->Redirect = 1;
            	}
             else
+            {    
                 gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckReWriteFile),FALSE);
-                        
+            }            
             break;
         case CHOOSE:
             fd = OpenUseFile(FileName);
             if(fd > 0)
             {
                 uc->UseFilefd = fd;
-                uc->UseFile = 1;
             }
             else
                 gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckUseFile),FALSE);
@@ -178,7 +177,10 @@ static void  CloseChooseFileWrite(GtkButton *button, gpointer data)
 {
 	UartControl *uc = (UartControl *)data;
     if(uc->ChooseFile == SAVE)
+    {    
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckReWriteFile),FALSE);
+        uc->Filefd = 0;
+    }
     else
        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckUseFile),FALSE);
     gtk_widget_destroy(GTK_WIDGET(uc->ChooseDialog));
@@ -201,7 +203,7 @@ static GtkWidget* CreateFileChoose (UartControl *uc)
     }
     else 
     {
-    	FileChoose = gtk_file_chooser_dialog_new ("", 
+    	FileChoose = gtk_file_chooser_dialog_new ("Selection of data sources", 
                                                   GTK_WINDOW(uc->MainWindow), 
                                                   GTK_FILE_CHOOSER_ACTION_OPEN, 
                                                   NULL,NULL);

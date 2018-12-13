@@ -29,6 +29,7 @@ typedef struct
 	GtkWidget *SelectParity;
 	GtkWidget *SelectStop;
 	GtkWidget *SelectData;
+    GtkWidget *LabelState;
     GtkWidget *CheckAutoSend;
     GtkWidget *CheckAutoClean;
     GtkWidget *CheckUseFile;
@@ -74,13 +75,11 @@ typedef struct
 	UartParamete     UP;
     GSList          *Portlist;
     GtkListStore    *PortStore;
-	int              Filefd;
+	int              Filefd;    //Data Write to File
 	int              ShowHex;
-	int              Redirect;
 	int              ShowTime;
 	int              ChooseFile;
     int              AutoCleanSendData;
-    int              UseFile;
     int              UseFilefd;
     int              AutoSend;
     int              TimeId;
@@ -91,9 +90,6 @@ typedef struct
 }UartControl;
 
 GMutex Mutex;
-int CurrentData;
-GCond Cond;
-int Serialfd;
 int ThreadEnd;
 GtkWidget *MainWindow;
 #endif

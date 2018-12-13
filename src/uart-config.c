@@ -12,7 +12,7 @@ SetSerialNotifyEvent (GtkWidget *widget,
 {
 	UartControl *uc = (UartControl *) data;
     gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),\
-                      _("Serial Setting and open Serial"));
+                      _("Serial Setting"));
 
     return TRUE;
 } 
@@ -119,19 +119,15 @@ static void SwitchUartStop(GtkWidget *widget,gpointer data)
 	g_free(text);
      
 }
-static int gnSwitchSatue = 1;
-static int GetSwitchState( const char *ButtonName)
-{
-    if(gnSwitchSatue == 0)
-    { 
-        gnSwitchSatue = 1;       
-        return 0;
-    }    
-    else
-    {   
-        gnSwitchSatue = 0;
-        return 1;
+static gboolean GetSwitchState( const char *ButtonName)
+{   
+    gboolean Ret = TRUE;
+
+    if(g_strrstr(ButtonName,"Open") != NULL)
+    {
+        Ret = FALSE;
     }
+    return Ret;
 }
 static void LockSetSerial(UartControl *uc)
 {
@@ -151,19 +147,17 @@ static void UnLockSetSerial(UartControl *uc)
 	gtk_widget_set_sensitive(uc->ULC.SelectStop, TRUE);
 	gtk_widget_set_sensitive(uc->ULC.SelectData, TRUE);
 }
+/*复位串口*/
 static void ResetSerial(UartControl *uc)
 {
     ThreadEnd = 1;   //关闭读串口数据线程
 
-    close(Serialfd);  //关闭串口描述符
-    Serialfd = -1;    
-    uc->UP.fd = -1;
+     uc->UP.fd = -1;
 
-    if(uc->Redirect == 1 && uc->Filefd > 0)  //关闭接收内容重定向
+    if(uc->Filefd > 0)  //关闭接收内容重定向
     {
         close(uc->Filefd);
         uc->Filefd = -1;
-        uc->Redirect = 0;
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckReWriteFile),
                                       FALSE);
     }
@@ -180,12 +174,10 @@ static void ResetSerial(UartControl *uc)
                                       FALSE);
 
     }        
-    if(uc->UseFile == 1  &&  uc->UseFilefd > 0 )
+    if(uc->UseFilefd > 0 )
     {
-        if(uc->UseFilefd > 0)
-            close(uc->UseFilefd);
+        close(uc->UseFilefd);
         uc->UseFilefd = -1;
-        uc->UseFile = 0;
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(uc->ULC.CheckUseFile),
                                       FALSE);
 
@@ -207,45 +199,38 @@ static void ResetSerial(UartControl *uc)
         gtk_widget_set_sensitive(uc->ULC.EntrySendCycle,TRUE);
         gtk_widget_set_sensitive(uc->UDC.Button,TRUE);
     }
+
 }        
 static void OpenSerial(GtkWidget *Button,gpointer user_data)
 {
-    int SwitchState;
+    gboolean SwitchState;
     int OpenState;
 	UartControl *uc = (UartControl *) user_data;
 
     SwitchState = GetSwitchState(gtk_button_get_label(GTK_BUTTON(Button)));
-    if(SwitchState == CLOSE)
+    if(SwitchState == TRUE) // open ---> close
     {
-        if(Serialfd < 0)
-        {
-        	MessageReport(_("close Serial"),_("close Serial Fail"),ERROR);
-        }
-        else
-        {
-        	UnLockSetSerial(uc);
-            ResetSerial(uc);
-        	gtk_button_set_label(GTK_BUTTON(Button),_("● Open"));
-        	SetWidgetStyle(Button,"black",13);
-        }
+        UnLockSetSerial(uc);
+        ResetSerial(uc);
+        gtk_button_set_label(GTK_BUTTON(Button),_("Open"));
+        SetWidgetStyle(Button,"black",13);
+        SetLableFontType(uc->ULC.LabelState,"black",20,"● ");
     }
     else
     {
         OpenState = InitSerial(uc);
         if(OpenState < 0)
         {   
-            gnSwitchSatue = 1;      
         	MessageReport(_("Open Serial"),_("Open Serial Fail"),ERROR);
         }
         else
         {	ThreadEnd = 0;
    			LockSetSerial(uc);
    			uc->UP.fd =  OpenState;
-   			Serialfd = OpenState;
-        	gtk_button_set_label(GTK_BUTTON(Button),_("● Close"));
+        	gtk_button_set_label(GTK_BUTTON(Button),_("Close"));
         	SetWidgetStyle(Button,"red",13);
+            SetLableFontType(uc->ULC.LabelState,"red",20,"● ");
         	CreateReadUart(uc);
-
 		}
     }
 }
@@ -552,6 +537,9 @@ void SerialPortSetup(GtkWidget *Hbox,UartControl *uc)
 
     LabelState = gtk_label_new(NULL);
     SetLableFontType(LabelState,"black",20,"● ");
+    gtk_widget_set_vexpand(LabelState,TRUE);
+    gtk_widget_set_valign (LabelState,GTK_ALIGN_END);
+    uc->ULC.LabelState = LabelState;
     gtk_grid_attach(GTK_GRID(Table) , LabelState , 0 , 5 , 1 , 1);
 
     Button = gtk_button_new_with_label (_("Open"));

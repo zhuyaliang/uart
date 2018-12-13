@@ -103,7 +103,6 @@ int main(int argc, char **argv)
     textdomain (PACKAGE); 
 
     g_mutex_init(&Mutex);
-    g_cond_init (&Cond);
     gtk_init(&argc, &argv);
    
     MainWindow = CreateMainWindow();

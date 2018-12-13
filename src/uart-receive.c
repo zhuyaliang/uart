@@ -7,8 +7,9 @@ static void SwitchWriteFile(GtkWidget *Check,gpointer  data)
 	if(gtk_toggle_button_get_active
       (GTK_TOGGLE_BUTTON(uc->ULC.CheckReWriteFile)) == FALSE)
     {   
-		uc->Redirect = 0;
+		uc->Filefd = 0;
     }
+    /*open function*/
     else
 	{	
 		uc->ChooseFile = SAVE; 
@@ -37,10 +38,8 @@ user_function (GtkLabel *label,
                gchar    *uri,
                gpointer  user_data)
 {
-	printf("wwwwwwwwwww\r\n");	
-	
-	UartControl *uc = (UartControl *) user_data;
-	
+	//UartControl *uc = (UartControl *) user_data;
+    return TRUE;	
 }   
 static void ClearTerminalData (GtkLabel *label,
                			gchar    *uri,
@@ -59,6 +58,7 @@ SetReceiveNotifyEvent (GtkWidget *widget,
 	UartControl *uc = (UartControl *) data;
     gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
                       _("Receive Setting"));
+    return TRUE;
 }        
 void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
 {
@@ -136,7 +136,6 @@ void ReceiveSet(GtkWidget *Hbox,UartControl *uc)
    	Hseparator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_grid_attach(GTK_GRID(Table) , Hseparator , 0 , 5 , 2 , 1);
     
-
     gtk_grid_set_row_spacing(GTK_GRID(Table), 3);
     gtk_grid_set_column_spacing(GTK_GRID(Table), 3);
 

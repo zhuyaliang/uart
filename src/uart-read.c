@@ -4,10 +4,10 @@
 static void AddReceiveTime(UartControl *uc)
 {
 	struct tm *t;
+    char TimeBuf[128] = { 0 };
     time_t tt;
     time(&tt);
     t = localtime(&tt);
-    char TimeBuf[128] = { 0 };
     sprintf(TimeBuf,"%4d-%02d-%02d  %02d:%02d:%02d\r\n", t->tm_year + 1900,
     													 t->tm_mon + 1,
     													 t->tm_mday,
@@ -48,9 +48,9 @@ static int ConversionHex(char *ReadBuf,int size,UartControl *uc)
             uc->ReceCount += 1;
         }
     }
-
+    return 0;
 }
-static int AlignData(char *ReadBuf,int size,UartControl *uc)
+static void AlignData(char *ReadBuf,int size,UartControl *uc)
 {
     int pos;
     GString *buffer_tmp;
@@ -69,25 +69,27 @@ static int AlignData(char *ReadBuf,int size,UartControl *uc)
     	AddReceiveTime(uc);
     	AddTime = 0;
     }
-    for (pos = size; pos > 0; pos--) {
+    for (pos = size; pos > 0; pos--) 
+    {
         in_buffer--;
-        if(*in_buffer=='\r' && *(in_buffer+1) != '\n'){
+        if(*in_buffer == '\r' && *(in_buffer+1) != '\n')
+        {
             g_string_insert_c(buffer_tmp, pos, '\n');
             size += 1;
         }
-        if(*in_buffer=='\n' && *(in_buffer-1) != '\r'){
+        if(*in_buffer == '\n' && *(in_buffer-1) != '\r')
+        {
             g_string_insert_c(buffer_tmp, pos-1, '\r');
             AddTime = 1;
             size += 1;
         }
-        if(*in_buffer=='\n' && *(in_buffer-1) == '\r')
+        if(*in_buffer == '\n' && *(in_buffer-1) == '\r')
         {
             AddTime = 1;
         }
     }
     vte_terminal_feed(VTE_TERMINAL(uc->URC.ReveTerminal), buffer_tmp->str, size);
     uc->ReceCount += 1;
-
 }
 static int WriteDataToFile(char *ReadBuf,int size,UartControl *uc)
 {
@@ -96,26 +98,32 @@ static int WriteDataToFile(char *ReadBuf,int size,UartControl *uc)
     gchar *in_buffer;
 
     buffer_tmp =  g_string_new(ReadBuf);
-    in_buffer=buffer_tmp->str;
+    in_buffer = buffer_tmp->str;
     in_buffer += size;
 
-    for (pos = size; pos > 0; pos--) {
+    for (pos = size; pos > 0; pos--) 
+    {
         in_buffer--;
-        if(*in_buffer=='\r' && *(in_buffer+1) != '\n'){
+        if(*in_buffer =='\r' && *(in_buffer+1) != '\n')
+        {
             g_string_insert_c(buffer_tmp, pos, '\n');
             size += 1;
         }
-        if(*in_buffer=='\n' && *(in_buffer-1) != '\r'){
+        if(*in_buffer =='\n' && *(in_buffer-1) != '\r')
+        {
             g_string_insert_c(buffer_tmp, pos-1, '\r');
             size += 1;
         }
     }
 	write(uc->Filefd,buffer_tmp->str, size);
     uc->ReceCount += 1;
+
+    return 0;
 }
 static int DataHandle(char *ReadBuf,UartControl *uc)
 {
-	if(uc->Redirect == 1 && uc->Filefd > 0)
+    /*Data Write to File*/
+	if(uc->Filefd > 0)
 	{
 		WriteDataToFile(ReadBuf,strlen(ReadBuf),uc);
 	}
@@ -126,15 +134,16 @@ static int DataHandle(char *ReadBuf,UartControl *uc)
         else
             AlignData(ReadBuf,strlen(ReadBuf),uc);
 	}
+    return 0;
 }
 static gpointer ReadUart(gpointer data)
 {
 	UartControl *uc = (UartControl *) data;
 	int ReadLen;
 	fd_set rd;
-    unsigned char ReadBuf[1024] = {0};
+    char ReadBuf[1024] = {0};
     struct timeval Timeout={0,0};
-    
+    int Serialfd = uc->UP.fd;
     while(1)
     {
     	FD_ZERO(&rd);
@@ -150,15 +159,13 @@ static gpointer ReadUart(gpointer data)
                 usleep(200000);
       			g_mutex_lock(&Mutex);
 				ReadLen = read(Serialfd, ReadBuf, 1024);
-				g_cond_signal (&Cond);
-                CurrentData = 1;
 				g_mutex_unlock(&Mutex);
 				DataHandle(ReadBuf,uc);
-                memset(ReadBuf,'\0',strlen(ReadBuf));
+                memset(ReadBuf,'\0',ReadLen);
       		}
     	}
   	}
-
+    return NULL;
 }
 gpointer CreateReadUart(UartControl *uc)
 {

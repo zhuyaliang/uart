@@ -20,6 +20,8 @@ static gboolean AutoWriteUart (gpointer data)
         text[strlen(text)] = '\n';
         WriteUart(text,SendLen,uc);
     }
+
+    return TRUE;
 }        
 static void SetAutoSend (UartControl *uc)
 {
@@ -96,7 +98,11 @@ static void SwitchUseFile(GtkWidget *Check,gpointer  data)
     }        
     else
     {
-        uc->UseFile = 0;
+        if(uc->UseFilefd > 0)
+        {
+            close(uc->UseFilefd);
+            uc->UseFilefd = -1;
+        }    
         gtk_widget_set_sensitive(uc->ULC.CheckAutoSend, TRUE);
     }        
 }
@@ -106,7 +112,7 @@ static void SendFile (GtkLabel *label,
                			gchar    *uri,
                			gpointer  user_data)
 {
-	UartControl *uc = (UartControl *) user_data;
+	//UartControl *uc = (UartControl *) user_data;
 }
 static void ClearSendData (GtkLabel *label,
                			gchar    *uri,
@@ -123,6 +129,7 @@ SetSendNotifyEvent (GtkWidget *widget,
 	UartControl *uc = (UartControl *) data;
     gtk_label_set_text(GTK_LABEL(uc->UDC.LabelState),
                       _("Send Setting"));
+    return TRUE;
 }
 void SendSet(GtkWidget *Hbox,UartControl *uc)
 {
@@ -186,6 +193,10 @@ void SendSet(GtkWidget *Hbox,UartControl *uc)
     EntrySendCycle = gtk_entry_new();
     gtk_entry_set_max_length(GTK_ENTRY(EntrySendCycle),6);
     gtk_entry_set_text(GTK_ENTRY(EntrySendCycle),"1000");
+    gtk_widget_set_hexpand (EntrySendCycle,TRUE);
+    gtk_widget_set_halign (EntrySendCycle,GTK_ALIGN_CENTER);
+    gtk_widget_set_tooltip_text(EntrySendCycle,_("Automatic transmission cycle, unit milliseconds"));
+    gtk_entry_set_placeholder_text(GTK_ENTRY(EntrySendCycle),_("ms"));
     uc->ULC.EntrySendCycle = EntrySendCycle;
     gtk_grid_attach(GTK_GRID(Table) , EntrySendCycle , 0 , 4, 2 , 1);
 

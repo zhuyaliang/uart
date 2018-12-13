@@ -11,10 +11,8 @@ void SetDefaultSerial(UartControl *uc)
 	uc->ShowHex        = 0;
 	uc->Filefd         = -1;
     uc->UseFilefd      = -1;
-	uc->Redirect       = 0;
     uc->ShowTime       = 0;
     uc->AutoCleanSendData = 0; 
-    uc->UseFile        = 0;	
     uc->AutoSend       = 0;
     uc->TimeId         = -1;
     uc->SendCount      = 0;
@@ -162,5 +160,3 @@ int InitSerial(UartControl *uc)
 
 	return fd;
 }
-
-
