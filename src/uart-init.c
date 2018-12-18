@@ -1,8 +1,9 @@
 #include "uart-init.h"
-
+#ifndef CMSPAR
+#define CMSPAR   010000000000
+#endif
 void SetDefaultSerial(UartControl *uc)
 {
-	uc->UP.UartPort = g_strdup("/dev/ttyS0");
 	uc->UP.UartBaud    = 9600;
 	uc->UP.UartParity  = 0;
 	uc->UP.UartStop    = 1;
@@ -24,13 +25,14 @@ int InitSerial(UartControl *uc)
 {
 	int fd;
 	struct termios termios_old, termios_new;
-
+    
+    printf("uc->UP.UartPort = %s\r\n",uc->UP.UartPort);
 	fd = open(uc->UP.UartPort, O_RDWR | O_NOCTTY | O_NDELAY);
 	if(fd < 0)
 	{
 		return -1;
 	}
-
+    
 	if(fcntl(fd, F_SETFL, 0) < 0)		//擦除以前的标志位，恢复成默认设置
 	{
 		return -1;

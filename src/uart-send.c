@@ -16,7 +16,8 @@ static gboolean AutoWriteUart (gpointer data)
     SendLen = strlen(text);
     if(SendLen > 0)
     {
-        SendLen += 1;     
+        SendLen += 2;     
+        text[strlen(text)] = '\r';
         text[strlen(text)] = '\n';
         WriteUart(text,SendLen,uc);
     }

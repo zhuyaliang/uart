@@ -30,7 +30,7 @@ static void SwitchUartPort(GtkWidget *widget,gpointer data)
     	    model = gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
             gtk_tree_model_get( model, &iter, 0, &text, -1 );
         }
-   	    memset(uc->UP.UartPort,'\0',strlen(uc->UP.UartPort));
+   	    memset(uc->UP.UartPort,'\0',strlen(uc->UP.UartPort) + 1);
 	    sprintf(Path,"/dev/%s",text);
         memcpy(uc->UP.UartPort,Path,strlen(Path));
 	    g_free(text);
@@ -305,6 +305,7 @@ static gboolean UpdateDevice (gpointer data)
     GtkTreeIter     Iter;
     GSList *CurrentList, *l;
     int i = 0;
+    char tmp[30] = { 0 };
 
     CurrentList = GetDevice();
     if(CheckDeviceIsUpdate(CurrentList,uc->Portlist) == TRUE)
@@ -312,6 +313,9 @@ static gboolean UpdateDevice (gpointer data)
         SelectChange = 1; 
         gtk_list_store_clear(uc->PortStore);
         uc->Portlist = g_slist_copy(CurrentList);
+        memset(uc->UP.UartPort,'\0',strlen(uc->UP.UartPort) + 1);
+        sprintf(tmp,"/dev/%s",(char *)uc->Portlist->data);
+        uc->UP.UartPort = g_strdup(tmp);
         for (l = uc->Portlist; l; l = l->next,i++)
         {
             gtk_list_store_append(uc->PortStore,&Iter);
@@ -331,7 +335,8 @@ static GtkWidget *SetComPort(UartControl *uc)
     GtkTreeIter     Iter;
     GSList *l;
     int i = 0;
-    
+    char tmp[30] = { 0 };
+
     uc->Portlist =  GetDevice();
     if(uc->Portlist == NULL)
     {
@@ -342,7 +347,10 @@ static GtkWidget *SetComPort(UartControl *uc)
     }    
 
     uc->PortStore = gtk_list_store_new(1,G_TYPE_STRING);
-
+    
+    memset(uc->UP.UartPort,'\0',strlen(uc->UP.UartPort) + 1);
+    sprintf(tmp,"/dev/%s",(char *)uc->Portlist->data);
+    uc->UP.UartPort = g_strdup(tmp);
     for (l = uc->Portlist; l; l = l->next,i++)
     {
         gtk_list_store_append(uc->PortStore,&Iter);

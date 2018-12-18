@@ -75,12 +75,12 @@ static void AlignData(char *ReadBuf,int size,UartControl *uc)
         if(*in_buffer == '\r' && *(in_buffer+1) != '\n')
         {
             g_string_insert_c(buffer_tmp, pos, '\n');
+            AddTime = 1;
             size += 1;
         }
         if(*in_buffer == '\n' && *(in_buffer-1) != '\r')
         {
             g_string_insert_c(buffer_tmp, pos-1, '\r');
-            AddTime = 1;
             size += 1;
         }
         if(*in_buffer == '\n' && *(in_buffer-1) == '\r')
