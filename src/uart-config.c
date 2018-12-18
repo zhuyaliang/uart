@@ -348,7 +348,6 @@ static GtkWidget *SetComPort(UartControl *uc)
 
     uc->PortStore = gtk_list_store_new(1,G_TYPE_STRING);
     
-    memset(uc->UP.UartPort,'\0',strlen(uc->UP.UartPort) + 1);
     sprintf(tmp,"/dev/%s",(char *)uc->Portlist->data);
     uc->UP.UartPort = g_strdup(tmp);
     for (l = uc->Portlist; l; l = l->next,i++)

@@ -25,8 +25,6 @@ int InitSerial(UartControl *uc)
 {
 	int fd;
 	struct termios termios_old, termios_new;
-    
-    printf("uc->UP.UartPort = %s\r\n",uc->UP.UartPort);
 	fd = open(uc->UP.UartPort, O_RDWR | O_NOCTTY | O_NDELAY);
 	if(fd < 0)
 	{
