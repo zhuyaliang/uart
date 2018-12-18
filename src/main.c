@@ -39,8 +39,7 @@ static GtkWidget *CreateMainWindow(void)
 	gtk_window_set_position(GTK_WINDOW(WindowMain), GTK_WIN_POS_CENTER);
 	gtk_widget_realize(WindowMain);
     gtk_container_set_border_width(GTK_CONTAINER(WindowMain),10);
-    gtk_window_set_resizable(GTK_WINDOW(WindowMain),FALSE);
-//	gtk_widget_set_size_request(WindowMain, 500, 500);
+	gtk_widget_set_size_request(WindowMain, 600, 700);
     
     AppIcon  = GetAppIcon();
     if(AppIcon)
