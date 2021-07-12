@@ -5,6 +5,7 @@
 #include "uart-receive.h"
 #include "uart-send.h"
 #include "uart-bottom.h"
+#include "gtk/gtk.h"
 
 static GdkPixbuf * GetAppIcon(void)
 {
